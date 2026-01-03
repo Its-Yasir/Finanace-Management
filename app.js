@@ -424,6 +424,7 @@ function showToast(message, type = 'info', duration = 5000) {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.style.position = 'relative';
+  toast.style.setProperty('--duration', `${duration}ms`);
   
   // Icon based on type
   const icons = {
