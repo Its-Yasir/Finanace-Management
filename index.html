@@ -9,6 +9,10 @@
     />
     <title>Login - Personal Expense Tracker</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+    <link rel="alternate icon" href="assets/logo.png">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -32,7 +36,7 @@
       <div class="auth-card">
         <!-- Header with Logo -->
         <div class="auth-header">
-          <img src="assets/logo.png" alt="PET Logo" class="auth-logo" />
+          <img src="assets/logo.svg" alt="PET Logo" class="auth-logo" onerror="this.onerror=null; this.src='assets/logo.png';" />
           <h1 class="auth-title">Personal Expense Tracker</h1>
           <p class="auth-subtitle">Manage your finances with ease</p>
         </div>
@@ -77,6 +81,20 @@
 
         <!-- Register Form (Hidden by default) -->
         <form id="registerForm" class="auth-form hidden">
+          <div class="form-group">
+            <label for="registerName" class="form-label">
+              <i class="fas fa-user"></i> Username
+            </label>
+            <input
+              type="text"
+              id="registerName"
+              class="form-input"
+              placeholder="Enter your username"
+              required
+              autocomplete="name"
+            />
+          </div>
+
           <div class="form-group">
             <label for="registerEmail" class="form-label">
               <i class="fas fa-envelope"></i> Email Address
@@ -254,8 +272,11 @@
         loading.classList.add("active");
 
         try {
-          // Attempt registration
-          await registerUser(email, password);
+          // Get username
+          const name = document.getElementById("registerName").value;
+          
+          // Attempt registration with username
+          await registerUser(email, password, name);
 
           // Show success message
           showSuccess(

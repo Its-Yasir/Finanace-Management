@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Personal Expense Tracker - Settings">
+  <title>Settings - Personal Expense Tracker</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="alternate icon" href="assets/logo.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <img src="assets/logo.svg" alt="PET Logo" onerror="this.onerror=null; this.src='assets/logo.png';">
+      <span>PET</span>
+    </div>
+    
+    <ul class="navbar-nav">
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> <span class="nav-text">Dashboard</span></a></li>
+      <li><a href="expenses.html"><i class="fas fa-list"></i> <span class="nav-text">Expenses</span></a></li>
+      <li><a href="reports.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Reports</span></a></li>
+      <li><a href="settings.html" class="active"><i class="fas fa-cog"></i> <span class="nav-text">Settings</span></a></li>
+      <li>
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <i class="fas fa-moon"></i>
+        </button>
+      </li>
+      <li>
+        <div class="user-profile">
+          <img src="assets/user.png" alt="User Avatar" class="user-avatar">
+          <div class="user-info hide-mobile">
+            <div class="user-name">User</div>
+            <div class="user-email" id="userEmail">user@example.com</div>
+          </div>
+        </div>
+      </li>
+      <li>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm">
+          <i class="fas fa-sign-out-alt"></i> <span class="nav-text">Logout</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container page-content">
+    <!-- Page Header -->
+    <div class="section-header">
+      <h1 class="section-title">Settings</h1>
+      <p class="section-subtitle">Manage your account and preferences</p>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Settings Sections -->
+    <div class="section">
+      <!-- Profile Settings -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <h2 class="card-title">
+            <i class="fas fa-user"></i> Profile Information
+          </h2>
+        </div>
+        <div class="card-body">
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="displayName" class="form-label">
+                <i class="fas fa-id-card"></i> Username
+              </label>
+              <input 
+                type="text" 
+                id="displayName" 
+                class="form-input" 
+                placeholder="Your username"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="currentEmail" class="form-label">
+                <i class="fas fa-envelope"></i> Current Email
+              </label>
+              <input 
+                type="email" 
+                id="currentEmail" 
+                class="form-input" 
+                disabled
+                style="background-color: var(--bg-tertiary); cursor: not-allowed;"
+              >
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Update Profile
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Email Settings -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <h2 class="card-title">
+            <i class="fas fa-at"></i> Change Email
+          </h2>
+          <p class="text-secondary" style="font-size: 0.875rem; margin-bottom: 0;">
+            Update your email address for login
+          </p>
+        </div>
+        <div class="card-body">
+          <form id="emailForm">
+            <div class="form-group">
+              <label for="newEmail" class="form-label">
+                <i class="fas fa-envelope"></i> New Email
+              </label>
+              <input 
+                type="email" 
+                id="newEmail" 
+                class="form-input" 
+                placeholder="Enter new email address"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="emailPassword" class="form-label">
+                <i class="fas fa-lock"></i> Current Password
+              </label>
+              <input 
+                type="password" 
+                id="emailPassword" 
+                class="form-input" 
+                placeholder="Enter your current password"
+                required
+              >
+              <small class="text-secondary">Required for security verification</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> Update Email
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Password Settings -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <h2 class="card-title">
+            <i class="fas fa-key"></i> Change Password
+          </h2>
+          <p class="text-secondary" style="font-size: 0.875rem; margin-bottom: 0;">
+            Update your password to keep your account secure
+          </p>
+        </div>
+        <div class="card-body">
+          <form id="passwordForm">
+            <div class="form-group">
+              <label for="currentPassword" class="form-label">
+                <i class="fas fa-lock"></i> Current Password
+              </label>
+              <input 
+                type="password" 
+                id="currentPassword" 
+                class="form-input" 
+                placeholder="Enter current password"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="newPassword" class="form-label">
+                <i class="fas fa-lock"></i> New Password
+              </label>
+              <input 
+                type="password" 
+                id="newPassword" 
+                class="form-input" 
+                placeholder="Enter new password (min 6 characters)"
+                required
+                minlength="6"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword" class="form-label">
+                <i class="fas fa-lock"></i> Confirm New Password
+              </label>
+              <input 
+                type="password" 
+                id="confirmPassword" 
+                class="form-input" 
+                placeholder="Confirm new password"
+                required
+              >
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-shield-alt"></i> Update Password
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="card" style="border-color: var(--error-500);">
+        <div class="card-header">
+          <h2 class="card-title text-error">  
+            <i class="fas fa-exclamation-triangle"></i> Danger Zone
+          </h2>
+          <p class="text-secondary" style="font-size: 0.875rem; margin-bottom: 0;">
+            Irreversible actions that affect your account
+          </p>
+        </div>
+        <div class="card-body">
+          <p class="text-secondary mb-4">
+            Logging out will end your current session. You'll need to log in again to access your account.
+          </p>
+          <button id="logoutDangerBtn" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Logout from All Devices
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Script -->
+  <script type="module">
+    import { 
+      initApp, 
+      showError,
+      showSuccess,
+      hideLoading,
+      getUser
+    } from './app.js';
+    
+    import {
+      updateUserDisplayName,
+      updateUserEmail,
+      updateUserPassword,
+      logoutUser,
+      auth
+    } from './auth.js';
+
+    // Initialize page
+    async function initializePage() {
+      await initApp();
+      loadCurrentUserInfo();
+      setupEventListeners();
+      hideLoading();
+    }
+
+    // Load current user information
+    function loadCurrentUserInfo() {
+      const user = auth.currentUser;
+      
+      if (user) {
+        document.getElementById('displayName').value = user.displayName || '';
+        document.getElementById('currentEmail').value = user.email || '';
+      }
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Profile form
+      document.getElementById('profileForm').addEventListener('submit', handleProfileUpdate);
+      
+      // Email form
+      document.getElementById('emailForm').addEventListener('submit', handleEmailUpdate);
+      
+      // Password form
+      document.getElementById('passwordForm').addEventListener('submit', handlePasswordUpdate);
+      
+      // Danger zone logout
+      document.getElementById('logoutDangerBtn').addEventListener('click', handleLogout);
+    }
+
+    // Handle profile update
+    async function handleProfileUpdate(e) {
+      e.preventDefault();
+      
+      const newDisplayName = document.getElementById('displayName').value;
+      
+      try {
+        await updateUserDisplayName(newDisplayName);
+        showSuccess('Profile updated successfully!', 'messageContainer');
+        
+        // Update displayed name in navbar
+        const userNameElement = document.querySelector('.user-name');
+        if (userNameElement) {
+          userNameElement.textContent = newDisplayName;
+        }
+      } catch (error) {
+        showError(error.message, 'messageContainer');
+      }
+    }
+
+    // Handle email update
+    async function handleEmailUpdate(e) {
+      e.preventDefault();
+      
+      const newEmail = document.getElementById('newEmail').value;
+      const password = document.getElementById('emailPassword').value;
+      
+      try {
+        await updateUserEmail(newEmail, password);
+        showSuccess('Email updated successfully! Please verify your new email.', 'messageContainer');
+        
+        // Update current email display
+        document.getElementById('currentEmail').value = newEmail;
+        
+        // Clear form
+        document.getElementById('emailForm').reset();
+        
+        // Update navbar email
+        const userEmailElement = document.getElementById('userEmail');
+        if (userEmailElement) {
+          userEmailElement.textContent = newEmail;
+        }
+      } catch (error) {
+        showError(error.message, 'messageContainer');
+      }
+    }
+
+    // Handle password update
+    async function handlePasswordUpdate(e) {
+      e.preventDefault();
+      
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Validate passwords match
+      if (newPassword !== confirmPassword) {
+        showError('New passwords do not match', 'messageContainer');
+        return;
+      }
+      
+      try {
+        await updateUserPassword(currentPassword, newPassword);
+        showSuccess('Password updated successfully!', 'messageContainer');
+        
+        // Clear form
+        document.getElementById('passwordForm').reset();
+      } catch (error) {
+        showError(error.message, 'messageContainer');
+      }
+    }
+
+    // Handle logout
+    async function handleLogout() {
+      if (confirm('Are you sure you want to logout?')) {
+        try {
+          await logoutUser();
+        } catch (error) {
+          showError(error.message, 'messageContainer');
+        }
+      }
+    }
+
+    // Initialize page on load
+    initializePage();
+  </script>
+</body>
+</html>

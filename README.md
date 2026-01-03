@@ -189,6 +189,25 @@ The application is fully responsive with breakpoints:
 
 All layouts adapt automatically to screen size.
 
+## Security
+
+### Firebase API Keys
+
+**Important:** The Firebase API keys visible in the code are **SAFE and INTENDED** to be public.
+
+- Firebase API keys are identifiers, not secrets
+- Security is enforced through **Firebase Authentication** and **Firestore Security Rules**
+- This is the intended Firebase architecture for web apps
+
+**For complete security information**, see [SECURITY.md](SECURITY.md)
+
+### Critical Security Steps:
+
+1. ⚠️ **Update Firestore Security Rules** (Required)
+2. Enable only Email/Password authentication
+3. Set up budget alerts
+4. Review the [security checklist](SECURITY.md#-security-checklist)
+
 ## Browser Compatibility
 
 ✅ Chrome 100+  

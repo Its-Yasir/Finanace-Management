@@ -397,50 +397,126 @@ export function hideLoading() {
   }
 }
 
-/**
- * Show error message
- * @param {string} message - Error message to display
- * @param {string} containerId - ID of container to show error in
- */
-export function showError(message, containerId = 'errorContainer') {
-  const container = document.getElementById(containerId);
-  if (container) {
-    container.innerHTML = `
-      <div class="alert alert-error">
-        <i class="fas fa-exclamation-circle"></i>
-        <span>${message}</span>
-      </div>
-    `;
-    container.style.display = 'block';
-    
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-      container.style.display = 'none';
-    }, 5000);
+/* ===== TOAST NOTIFICATION SYSTEM ===== */
+
+// Create toast container if it doesn't exist
+function ensureToastContainer() {
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
   }
+  return container;
 }
 
 /**
- * Show success message
- * @param {string} message - Success message to display
- * @param {string} containerId - ID of container to show message in
+ * Show toast notification
+ * @param {string} message - Message to display
+ * @param {string} type - Toast type: 'success', 'error', 'warning', 'info'
+ * @param {number} duration - Duration in milliseconds (default: 5000)
  */
-export function showSuccess(message, containerId = 'successContainer') {
-  const container = document.getElementById(containerId);
-  if (container) {
-    container.innerHTML = `
-      <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i>
-        <span>${message}</span>
-      </div>
-    `;
-    container.style.display = 'block';
-    
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-      container.style.display = 'none';
-    }, 3000);
-  }
+function showToast(message, type = 'info', duration = 5000) {
+  const container = ensureToastContainer();
+  
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.style.position = 'relative';
+  
+  // Icon based on type
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-exclamation-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  
+  // Titles based on type
+  const titles = {
+    success: 'Success',
+    error: 'Error',
+    warning: 'Warning',
+    info: 'Info'
+  };
+  
+  toast.innerHTML = `
+    <div class="toast-icon">
+      <i class="fas ${icons[type]}"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title">${titles[type]}</div>
+      <div class="toast-message">${message}</div>
+    </div>
+    <button class="toast-close" aria-label="Close">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="toast-progress"></div>
+  `;
+  
+  // Add to container
+  container.appendChild(toast);
+  
+  // Close button functionality
+  const closeBtn = toast.querySelector('.toast-close');
+  closeBtn.addEventListener('click', () => {
+    removeToast(toast);
+  });
+  
+  // Auto remove after duration
+  setTimeout(() => {
+    removeToast(toast);
+  }, duration);
+}
+
+/**
+ * Remove toast with animation
+ * @param {HTMLElement} toast - Toast element to remove
+ */
+function removeToast(toast) {
+  if (!toast || !toast.parentElement) return;
+  
+  toast.classList.add('hiding');
+  
+  // Remove from DOM after animation
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 300);
+}
+
+/**
+ * Show error toast
+ * @param {string} message - Error message to display
+ */
+export function showError(message) {
+  showToast(message, 'error', 6000);
+}
+
+/**
+ * Show success toast
+ * @param {string} message - Success message to display
+ */
+export function showSuccess(message) {
+  showToast(message, 'success', 4000);
+}
+
+/**
+ * Show warning toast
+ * @param {string} message - Warning message to display
+ */
+export function showWarning(message) {
+  showToast(message, 'warning', 5000);
+}
+
+/**
+ * Show info toast
+ * @param {string} message - Info message to display
+ */
+export function showInfo(message) {
+  showToast(message, 'info', 4000);
 }
 
 /**
@@ -646,10 +722,19 @@ export async function initApp() {
       });
     }
     
-    // Display user email in navbar if element exists
+    // Display user name/email in navbar if element exists
     const userEmailElement = document.getElementById('userEmail');
+    const userNameElement = document.querySelector('.user-name');
+    
     if (userEmailElement && currentUser.email) {
       userEmailElement.textContent = currentUser.email;
+    }
+    
+    if (userNameElement && currentUser.displayName) {
+      userNameElement.textContent = currentUser.displayName;
+    } else if (userNameElement && currentUser.email) {
+      // Fallback to email if no display name
+      userNameElement.textContent = currentUser.email.split('@')[0];
     }
     
     console.log('App initialized successfully');
