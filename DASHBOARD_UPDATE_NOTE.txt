@@ -1,0 +1,17 @@
+Complete updated dashboard.html with income feature.
+
+See the implementation guide in INCOME_FEATURE.md for manual integration.
+
+Key changes needed:
+1. Add "Add Income" button in Quick Actions (line ~98)
+2. Add income modal before script tag (line ~136)
+3. Update JavaScript imports and logic (line ~139-243)
+
+I recommend following the INCOME_FEATURE.md guide which has all the code ready to copy-paste.
+
+Quick Summary:
+- Income feature functions are ready in app.js
+- Add Expense button is fixed
+- Just need to add UI elements to dashboard.html
+
+First priority: ENABLE FIRESTORE at https://console.cloud.google.com/datastore/setup?project=finance-management-c1606

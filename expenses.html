@@ -237,7 +237,8 @@
       showSuccess,
       hideLoading,
       showModal,
-      hideModal
+      hideModal,
+      showTableSkeleton
     } from './app.js';
 
     // Global variables
@@ -255,6 +256,9 @@
     // Load all expenses
     async function loadExpenses() {
       try {
+        // Show skeleton while loading
+        showTableSkeleton('expensesContainer', 8);
+        
         allExpenses = await getExpenses();
         filteredExpenses = allExpenses;
         displayExpenses(filteredExpenses);
@@ -412,11 +416,11 @@
         if (editingExpenseId) {
           // Update existing expense
           await updateExpense(editingExpenseId, expenseData);
-          showSuccess('Expense updated successfully!', 'messageContainer');
+          showSuccess('Expense updated successfully!');
         } else {
           // Add new expense
           await addExpense(expenseData);
-          showSuccess('Expense added successfully!', 'messageContainer');
+          showSuccess('Expense added successfully!');
         }
         
         // Close modal and reload expenses
@@ -424,7 +428,7 @@
         await loadExpenses();
         
       } catch (error) {
-        showError(error.message, 'messageContainer');
+        showError(error.message);
       }
     }
 
@@ -454,11 +458,11 @@
       
       try {
         await deleteExpense(editingExpenseId);
-        showSuccess('Expense deleted successfully!', 'messageContainer');
+        showSuccess('Expense deleted successfully!');
         window.closeDeleteModal();
         await loadExpenses();
       } catch (error) {
-        showError(error.message, 'messageContainer');
+        showError(error.message);
       }
     });
 

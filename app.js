@@ -226,6 +226,97 @@ export async function deleteExpense(expenseId) {
   }
 }
 
+/* ===== INCOME CRUD OPERATIONS ===== */
+
+/**
+ * Add income to Firestore
+ * @param {Object} incomeData - Income data {amount, source, date, description}
+ * @returns {Promise} Document reference
+ */
+export async function addIncome(incomeData) {
+  try {
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Validate income data
+    if (!incomeData.amount || incomeData.amount <= 0) {
+      throw new Error('Please enter a valid amount');
+    }
+    
+    if (!incomeData.source) {
+      throw new Error('Please enter a source');
+    }
+    
+    if (!incomeData.date) {
+      throw new Error('Please select a date');
+    }
+    
+    // Create income document
+    const income = {
+      userId: currentUser.uid,
+      amount: parseFloat(incomeData.amount),
+      source: incomeData.source,
+      date: Timestamp.fromDate(new Date(incomeData.date)),
+      description: incomeData.description || '',
+      createdAt: Timestamp.now()
+    };
+    
+    // Add to Firestore
+    const docRef = await addDoc(collection(db, 'income'), income);
+    console.log('Income added with ID:', docRef.id);
+    
+    return docRef;
+  } catch (error) {
+    console.error('Error adding income:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get all income for the current user
+ * @returns {Promise<Array>} Array of income objects
+ */
+export async function getIncome() {
+  try {
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Query income for current user
+    const q = query(
+      collection(db, 'income'),
+      where('userId', '==', currentUser.uid),
+      orderBy('date', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const income = [];
+    
+    querySnapshot.forEach((doc) => {
+      income.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    console.log(`Loaded ${income.length} income entries`);
+    return income;
+  } catch (error) {
+    console.error('Error fetching income:', error);
+    throw error;
+  }
+}
+
+/**
+ * Calculate total income
+ * @param {Array} income - Array of income objects
+ * @returns {number} Total amount
+ */
+export function calculateTotalIncome(income) {
+  return income.reduce((total, entry) => total + entry.amount, 0);
+}
+
 /* ===== DATA CALCULATIONS ===== */
 
 /**
@@ -312,14 +403,16 @@ export function filterByCategory(expenses, category) {
 /* ===== FORMATTING HELPERS ===== */
 
 /**
- * Format number as currency
+ * Format number as currency (PKR - Pakistani Rupee)
  * @param {number} amount - Amount to format
  * @returns {string} Formatted currency string
  */
 export function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-PK', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'PKR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(amount);
 }
 
@@ -518,6 +611,77 @@ export function showWarning(message) {
  */
 export function showInfo(message) {
   showToast(message, 'info', 4000);
+}
+
+/* ===== SKELETON LOADING ===== */
+
+/**
+ * Show skeleton loading for stats cards
+ */
+export function showStatsSkeletons() {
+  const statsGrid = document.querySelector('.stats-grid');
+  if (!statsGrid) return;
+  
+  statsGrid.innerHTML = `
+    <div class="skeleton-stat-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton skeleton-text" style="width: 60%;"></div>
+      <div class="skeleton skeleton-text-lg" style="width: 80%;"></div>
+    </div>
+    <div class="skeleton-stat-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton skeleton-text" style="width: 60%;"></div>
+      <div class="skeleton skeleton-text-lg" style="width: 80%;"></div>
+    </div>
+    <div class="skeleton-stat-card">
+      <div class="skeleton skeleton-icon"></div>
+      <div class="skeleton skeleton-text" style="width: 60%;"></div>
+      <div class="skeleton skeleton-text-lg" style="width: 80%;"></div>
+    </div>
+  `;
+}
+
+/**
+ * Show skeleton loading for table
+ * @param {string} containerId - ID of container element
+ * @param {number} rows - Number of skeleton rows to show
+ */
+export function showTableSkeleton(containerId, rows = 5) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  let html = `
+    <div class="table-container">
+      <table class="skeleton-table">
+        <tbody>
+  `;
+  
+  for (let i = 0; i < rows; i++) {
+    html += `
+      <tr class="skeleton-table-row">
+        <td class="skeleton-table-cell">
+          <div class="skeleton skeleton-text" style="width: 80px;"></div>
+        </td>
+        <td class="skeleton-table-cell">
+          <div class="skeleton skeleton-text" style="width: 100px;"></div>
+        </td>
+        <td class="skeleton-table-cell">
+          <div class="skeleton skeleton-text" style="width: 150px;"></div>
+        </td>
+        <td class="skeleton-table-cell">
+          <div class="skeleton skeleton-text" style="width: 80px; margin-left: auto;"></div>
+        </td>
+      </tr>
+    `;
+  }
+  
+  html += `
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  container.innerHTML = html;
 }
 
 /**

@@ -146,12 +146,18 @@
       getCategoryIcon,
       getCategoryBadge,
       showError,
-      hideLoading
+      hideLoading,
+      showStatsSkeletons,
+      showTableSkeleton
     } from './app.js';
 
     // Initialize app and load dashboard data
     async function loadDashboard() {
       try {
+       // Show skeleton loading immediately
+        showStatsSkeletons();
+        showTableSkeleton('recentExpensesContainer', 5);
+        
         // Initialize app (checks auth, loads theme, etc.)
         await initApp();
         
@@ -244,4 +250,3 @@
   </script>
 </body>
 </html>
-
