@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Personal Expense Tracker - Login and manage your finances"
+    />
+    <title>Login - Personal Expense Tracker</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- FontAwesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Authentication Container -->
+    <div class="auth-container">
+      <div class="auth-card">
+        <!-- Header with Logo -->
+        <div class="auth-header">
+          <img src="assets/logo.png" alt="PET Logo" class="auth-logo" />
+          <h1 class="auth-title">Personal Expense Tracker</h1>
+          <p class="auth-subtitle">Manage your finances with ease</p>
+        </div>
+
+        <!-- Error/Success Messages -->
+        <div id="messageContainer"></div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form">
+          <div class="form-group">
+            <label for="loginEmail" class="form-label">
+              <i class="fas fa-envelope"></i> Email Address
+            </label>
+            <input
+              type="email"
+              id="loginEmail"
+              class="form-input"
+              placeholder="Enter your email"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword" class="form-label">
+              <i class="fas fa-lock"></i> Password
+            </label>
+            <input
+              type="password"
+              id="loginPassword"
+              class="form-input"
+              placeholder="Enter your password"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+        </form>
+
+        <!-- Register Form (Hidden by default) -->
+        <form id="registerForm" class="auth-form hidden">
+          <div class="form-group">
+            <label for="registerEmail" class="form-label">
+              <i class="fas fa-envelope"></i> Email Address
+            </label>
+            <input
+              type="email"
+              id="registerEmail"
+              class="form-input"
+              placeholder="Enter your email"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="registerPassword" class="form-label">
+              <i class="fas fa-lock"></i> Password
+            </label>
+            <input
+              type="password"
+              id="registerPassword"
+              class="form-input"
+              placeholder="Create a password (min 6 characters)"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="registerPasswordConfirm" class="form-label">
+              <i class="fas fa-lock"></i> Confirm Password
+            </label>
+            <input
+              type="password"
+              id="registerPasswordConfirm"
+              class="form-input"
+              placeholder="Confirm your password"
+              required
+              autocomplete="new-password"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            <i class="fas fa-user-plus"></i> Register
+          </button>
+        </form>
+
+        <!-- Toggle between Login/Register -->
+        <div class="auth-toggle">
+          <p id="toggleText">
+            Don't have an account?
+            <a href="#" id="toggleLink">Register here</a>
+          </p>
+        </div>
+
+        <!-- Theme Toggle -->
+        <div class="text-center mt-4">
+          <button
+            id="themeToggle"
+            class="theme-toggle"
+            aria-label="Toggle theme"
+          >
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Firebase and Auth Script -->
+    <script type="module">
+      // Import authentication functions
+      import {
+        loginUser,
+        registerUser,
+        redirectIfAuthenticated,
+      } from "./auth.js";
+
+      import { loadTheme, toggleTheme, showError, showSuccess } from "./app.js";
+
+      // Check if user is already logged in
+      redirectIfAuthenticated();
+
+      // Load theme on page load
+      loadTheme();
+
+      // Theme toggle functionality
+      const themeToggle = document.getElementById("themeToggle");
+      themeToggle.addEventListener("click", toggleTheme);
+
+      // Form elements
+      const loginForm = document.getElementById("loginForm");
+      const registerForm = document.getElementById("registerForm");
+      const toggleLink = document.getElementById("toggleLink");
+      const toggleText = document.getElementById("toggleText");
+      const loading = document.getElementById("loading");
+
+      // Toggle between login and register forms
+      let isLoginMode = true;
+
+      toggleLink.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        isLoginMode = !isLoginMode;
+
+        if (isLoginMode) {
+          // Show login form
+          loginForm.classList.remove("hidden");
+          registerForm.classList.add("hidden");
+          toggleText.innerHTML = `Don't have an account? <a href="#" id="toggleLink">Register here</a>`;
+        } else {
+          // Show register form
+          loginForm.classList.add("hidden");
+          registerForm.classList.remove("hidden");
+          toggleText.innerHTML = `Already have an account? <a href="#" id="toggleLink">Login here</a>`;
+        }
+
+        // Re-attach event listener to new link
+        document
+          .getElementById("toggleLink")
+          .addEventListener("click", arguments.callee);
+      });
+
+      // Handle login form submission
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        // Show loading
+        loading.classList.add("active");
+
+        try {
+          // Attempt login
+          await loginUser(email, password);
+
+          // Show success message
+          showSuccess("Login successful! Redirecting...", "messageContainer");
+
+          // Redirect to dashboard
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 1000);
+        } catch (error) {
+          // Hide loading
+          loading.classList.remove("active");
+
+          // Show error message
+          showError(error.message, "messageContainer");
+        }
+      });
+
+      // Handle register form submission
+      registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        const passwordConfirm = document.getElementById(
+          "registerPasswordConfirm"
+        ).value;
+
+        // Validate passwords match
+        if (password !== passwordConfirm) {
+          showError("Passwords do not match", "messageContainer");
+          return;
+        }
+
+        // Show loading
+        loading.classList.add("active");
+
+        try {
+          // Attempt registration
+          await registerUser(email, password);
+
+          // Show success message
+          showSuccess(
+            "Registration successful! Redirecting...",
+            "messageContainer"
+          );
+
+          // Redirect to dashboard
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 1000);
+        } catch (error) {
+          // Hide loading
+          loading.classList.remove("active");
+
+          // Show error message
+          showError(error.message, "messageContainer");
+        }
+      });
+    </script>
+  </body>
+</html>

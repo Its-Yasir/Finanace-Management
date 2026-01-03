@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Personal Expense Tracker - Reports and Analytics">
+  <title>Reports - Personal Expense Tracker</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <img src="assets/logo.png" alt="PET Logo">
+      <span>PET</span>
+    </div>
+    
+    <ul class="navbar-nav">
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> <span class="nav-text">Dashboard</span></a></li>
+      <li><a href="expenses.html"><i class="fas fa-list"></i> <span class="nav-text">Expenses</span></a></li>
+      <li><a href="reports.html" class="active"><i class="fas fa-chart-pie"></i> <span class="nav-text">Reports</span></a></li>
+      <li>
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+          <i class="fas fa-moon"></i>
+        </button>
+      </li>
+      <li>
+        <div class="user-profile">
+          <img src="assets/user.png" alt="User Avatar" class="user-avatar">
+          <div class="user-info hide-mobile">
+            <div class="user-name">User</div>
+            <div class="user-email" id="userEmail">user@example.com</div>
+          </div>
+        </div>
+      </li>
+      <li>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm">
+          <i class="fas fa-sign-out-alt"></i> <span class="nav-text">Logout</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container page-content">
+    <!-- Page Header -->
+    <div class="section-header">
+      <h1 class="section-title">Reports & Analytics</h1>
+      <p class="section-subtitle">Visualize your spending patterns</p>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value" id="totalExpenses">$0.00</div>
+      </div>
+
+      <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+        <div class="stat-icon">
+          <i class="fas fa-tags"></i>
+        </div>
+        <div class="stat-label">Categories</div>
+        <div class="stat-value" id="totalCategories">0</div>
+      </div>
+
+      <div class="stat-card expense">
+        <div class="stat-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-label">Avg. Monthly</div>
+        <div class="stat-value" id="avgMonthly">$0.00</div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Charts Section -->
+    <div id="chartsSection" class="hidden">
+      <!-- Expenses by Category (Pie Chart) -->
+      <div class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <i class="fas fa-chart-pie"></i> Expenses by Category
+            </h2>
+            <p class="text-secondary" style="font-size: 0.875rem;">
+              Distribution of your spending across different categories
+            </p>
+          </div>
+          <div class="card-body">
+            <div style="max-width: 600px; margin: 0 auto;">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Spending (Bar Chart) -->
+      <div class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <i class="fas fa-chart-bar"></i> Monthly Spending Trend
+            </h2>
+            <p class="text-secondary" style="font-size: 0.875rem;">
+              Your expenses over the last 6 months
+            </p>
+          </div>
+          <div class="card-body">
+            <div style="max-width: 800px; margin: 0 auto;">
+              <canvas id="monthlyChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Breakdown Table -->
+      <div class="section">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <i class="fas fa-table"></i> Category Breakdown
+            </h2>
+            <p class="text-secondary" style="font-size: 0.875rem;">
+              Detailed view of spending by category
+            </p>
+          </div>
+          <div class="card-body">
+            <div id="categoryTableContainer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state hidden">
+      <img src="assets/empty-state.png" alt="No data">
+      <h3>No Data Available</h3>
+      <p>Start adding expenses to see your reports and analytics</p>
+      <button class="btn btn-primary" onclick="window.location.href='expenses.html'">
+        <i class="fas fa-plus"></i> Add Expenses
+      </button>
+    </div>
+  </div>
+
+  <!-- Application Script -->
+  <script type="module">
+    import { 
+      initApp, 
+      getExpenses, 
+      calculateTotalExpenses,
+      calculateCategoryTotals,
+      calculateMonthlyTotals,
+      formatCurrency,
+      getCategoryIcon,
+      getCategoryBadge,
+      renderPieChart,
+      renderBarChart,
+      showError,
+      hideLoading
+    } from './app.js';
+
+    // Initialize page and load reports
+    async function initializePage() {
+      try {
+        // Initialize app
+        await initApp();
+        
+        // Load expenses
+        const expenses = await getExpenses();
+        
+        if (expenses.length === 0) {
+          // Show empty state
+          document.getElementById('emptyState').classList.remove('hidden');
+          hideLoading();
+          return;
+        }
+        
+        // Calculate analytics
+        const totalExpenses = calculateTotalExpenses(expenses);
+        const categoryTotals = calculateCategoryTotals(expenses);
+        const monthlyTotals = calculateMonthlyTotals(expenses, 6);
+        
+        // Update summary stats
+        document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+        document.getElementById('totalCategories').textContent = Object.keys(categoryTotals).length;
+        
+        // Calculate average monthly (divide total by 6 months)
+        const avgMonthly = totalExpenses / 6;
+        document.getElementById('avgMonthly').textContent = formatCurrency(avgMonthly);
+        
+        // Show charts section
+        document.getElementById('chartsSection').classList.remove('hidden');
+        
+        // Render charts
+        renderPieChart(categoryTotals, 'categoryChart');
+        renderBarChart(monthlyTotals, 'monthlyChart');
+        
+        // Render category breakdown table
+        renderCategoryTable(categoryTotals, totalExpenses);
+        
+        // Hide loading
+        hideLoading();
+        
+      } catch (error) {
+        console.error('Error loading reports:', error);
+        showError('Failed to load reports data');
+        hideLoading();
+      }
+    }
+
+    // Render category breakdown table
+    function renderCategoryTable(categoryTotals, totalExpenses) {
+      const container = document.getElementById('categoryTableContainer');
+      
+      // Sort categories by amount (descending)
+      const sortedCategories = Object.entries(categoryTotals)
+        .sort((a, b) => b[1] - a[1]);
+      
+      let html = `
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="text-right">Amount</th>
+                <th class="text-right">Percentage</th>
+                <th style="width: 200px;">Distribution</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      sortedCategories.forEach(([category, amount]) => {
+        const percentage = ((amount / totalExpenses) * 100).toFixed(1);
+        const icon = getCategoryIcon(category);
+        const badgeClass = getCategoryBadge(category);
+        
+        html += `
+          <tr>
+            <td>
+              <span class="${badgeClass}">
+                <i class="fas ${icon}"></i>
+                ${category}
+              </span>
+            </td>
+            <td class="text-right text-error" style="font-weight: 600;">
+              ${formatCurrency(amount)}
+            </td>
+            <td class="text-right" style="font-weight: 600;">
+              ${percentage}%
+            </td>
+            <td>
+              <div style="background-color: var(--bg-tertiary); border-radius: 9999px; overflow: hidden; height: 8px;">
+                <div style="
+                  background: linear-gradient(90deg, var(--primary-500), var(--primary-600)); 
+                  width: ${percentage}%; 
+                  height: 100%;
+                  border-radius: 9999px;
+                  transition: width 1s ease-in-out;
+                "></div>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      // Add total row
+      html += `
+        <tr style="background-color: var(--bg-secondary); font-weight: 700;">
+          <td>TOTAL</td>
+          <td class="text-right text-error">${formatCurrency(totalExpenses)}</td>
+          <td class="text-right">100%</td>
+          <td></td>
+        </tr>
+      `;
+      
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+      
+      container.innerHTML = html;
+    }
+
+    // Initialize page on load
+    initializePage();
+  </script>
+</body>
+</html>
