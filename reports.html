@@ -182,12 +182,17 @@
       renderPieChart,
       renderBarChart,
       showError,
-      hideLoading
+      hideLoading,
+      showStatsLoading,
+      hideStatsLoading
     } from './app.js';
 
     // Initialize page and load reports
     async function initializePage() {
       try {
+        // Show loading on stats
+        showStatsLoading();
+        
         // Initialize app
         await initApp();
         
@@ -213,6 +218,9 @@
         // Calculate average monthly (divide total by 6 months)
         const avgMonthly = totalExpenses / 6;
         document.getElementById('avgMonthly').textContent = formatCurrency(avgMonthly);
+        
+        // Hide stats loading
+        hideStatsLoading();
         
         // Show charts section
         document.getElementById('chartsSection').classList.remove('hidden');
@@ -314,4 +322,3 @@
   </script>
 </body>
 </html>
-

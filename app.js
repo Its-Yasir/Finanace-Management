@@ -712,6 +712,33 @@ export function getCategoryBadge(category) {
   return `badge badge-${category.toLowerCase()}`;
 }
 
+/**
+ * Show loading state on stats cards (without replacing HTML)
+ */
+export function showStatsLoading() {
+  const statsCards = document.querySelectorAll('.stat-value');
+  statsCards.forEach(card => {
+    if (card) {
+      card.style.opacity = '0.3';
+      card.style.filter = 'blur(4px)';
+      card.style.transition = 'all 0.3s ease';
+    }
+  });
+}
+
+/**
+ * Hide loading state on stats cards
+ */
+export function hideStatsLoading() {
+  const statsCards = document.querySelectorAll('.stat-value');
+  statsCards.forEach(card => {
+    if (card) {
+      card.style.opacity = '1';
+      card.style.filter = 'none';
+    }
+  });
+}
+
 /* ===== CHART RENDERING (Chart.js) ===== */
 
 /**

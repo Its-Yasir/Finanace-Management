@@ -71,7 +71,10 @@
           <i class="fas fa-wallet"></i>
         </div>
         <div class="stat-label">Total Income</div>
-        <div class="stat-value" id="totalIncome">$0.00</div>
+        <div class="stat-value" id="totalIncome">Rs 0</div>
+        <button id="addIncomeBtn" class="btn btn-success btn-sm" style="margin-top: var(--space-3); width: 100%;">
+          <i class="fas fa-plus-circle"></i> Add Income
+        </button>
       </div>
 
       <div class="stat-card expense">
@@ -79,7 +82,7 @@
           <i class="fas fa-receipt"></i>
         </div>
         <div class="stat-label">Total Expenses</div>
-        <div class="stat-value" id="totalExpenses">$0.00</div>
+        <div class="stat-value" id="totalExpenses">Rs 0</div>
       </div>
 
       <div class="stat-card balance">
@@ -87,7 +90,7 @@
           <i class="fas fa-piggy-bank"></i>
         </div>
         <div class="stat-label">Current Balance</div>
-        <div class="stat-value" id="currentBalance">$0.00</div>
+        <div class="stat-value" id="currentBalance">Rs 0</div>
       </div>
     </div>
 
@@ -134,47 +137,140 @@
     </div>
   </div>
 
+  <!-- Add Income Modal -->
+  <div id="incomeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Add Income</h2>
+        <button type="button" class="modal-close" onclick="closeIncomeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form id="incomeForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="incomeAmount" class="form-label">
+              <i class="fas fa-rupee-sign"></i> Amount *
+            </label>
+            <input 
+              type="number" 
+              id="incomeAmount" 
+              class="form-input" 
+              placeholder="0"
+              min="1"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="incomeSource" class="form-label">
+              <i class="fas fa-briefcase"></i> Source *
+            </label>
+            <input 
+              type="text" 
+              id="incomeSource" 
+              class="form-input" 
+              placeholder="e.g., Salary, Freelance, Business"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="incomeDate" class="form-label">
+              <i class="fas fa-calendar"></i> Date *
+            </label>
+            <input 
+              type="date" 
+              id="incomeDate" 
+              class="form-input" 
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="incomeDescription" class="form-label">
+              <i class="fas fa-align-left"></i> Description
+            </label>
+            <input 
+              type="text" 
+              id="incomeDescription" 
+              class="form-input" 
+              placeholder="Optional notes"
+            >
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeIncomeModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-save"></i> Save Income
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Application Script -->
   <script type="module">
     import { 
       initApp, 
-      getExpenses, 
+      getExpenses,
+      getIncome,
+      addIncome,
       calculateTotalExpenses,
+      calculateTotalIncome,
       getRecentExpenses,
       formatCurrency,
       formatDate,
       getCategoryIcon,
       getCategoryBadge,
       showError,
+      showSuccess,
       hideLoading,
-      showStatsSkeletons,
-      showTableSkeleton
+      showTableSkeleton,
+      showStatsLoading,
+      hideStatsLoading,
+      showModal,
+      hideModal
     } from './app.js';
 
     // Initialize app and load dashboard data
     async function loadDashboard() {
       try {
-       // Show skeleton loading immediately
-        showStatsSkeletons();
+        // Show skeleton for table and stats loading
+        showStatsLoading();
         showTableSkeleton('recentExpensesContainer', 5);
         
         // Initialize app (checks auth, loads theme, etc.)
         await initApp();
         
-        // Load expenses from Firestore
+        // Load expenses and income from Firestore
         const expenses = await getExpenses();
+        
+        // Try to load income, but handle gracefully if collection doesn't exist
+        let income = [];
+        try {
+          income = await getIncome();
+        } catch (incomeError) {
+          console.log('Income collection not ready yet:', incomeError.message);
+          // Continue without income data
+        }
         
         // Calculate totals
         const totalExpenses = calculateTotalExpenses(expenses);
-        
-        // For this demo, we'll set income to 0 (you can add income tracking later)
-        const totalIncome = 0;
+        const totalIncome = calculateTotalIncome(income);
         const currentBalance = totalIncome - totalExpenses;
         
         // Update stats cards
         document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
         document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
         document.getElementById('currentBalance').textContent = formatCurrency(currentBalance);
+        
+        // Hide stats loading
+        hideStatsLoading();
         
         // Get recent expenses
         const recentExpenses = getRecentExpenses(expenses, 5);
@@ -244,6 +340,39 @@
       
       container.innerHTML = html;
     }
+
+    // Close income modal
+    window.closeIncomeModal = function() {
+      hideModal('incomeModal');
+      document.getElementById('incomeForm').reset();
+    };
+
+    // Add income button handler
+    document.getElementById('addIncomeBtn').addEventListener('click', () => {
+      document.getElementById('incomeDate').valueAsDate = new Date();
+      showModal('incomeModal');
+    });
+
+    // Income form submit
+    document.getElementById('incomeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const incomeData = {
+        amount: document.getElementById('incomeAmount').value,
+        source: document.getElementById('incomeSource').value,
+        date: document.getElementById('incomeDate').value,
+        description: document.getElementById('incomeDescription').value
+      };
+      
+      try {
+        await addIncome(incomeData);
+        showSuccess('Income added successfully!');
+        window.closeIncomeModal();
+        loadDashboard(); // Reload to show new balance
+      } catch (error) {
+        showError(error.message);
+      }
+    });
 
     // Load dashboard on page load
     loadDashboard();
