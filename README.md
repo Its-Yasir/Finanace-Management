@@ -15,6 +15,104 @@ A modern, responsive web application for tracking personal expenses built with v
 - ✅ **Real-time Sync** - Data synced with Firebase Firestore
 - ✅ **Modern UI** - Glassmorphism effects and smooth animations
 
+## How It Works
+
+### User Journey
+
+1. **Authentication & Onboarding**
+
+   - New users register with their email and password through a secure Firebase Authentication system
+   - Existing users log in to access their personal expense data
+   - All user data is isolated and protected - users can only access their own expenses
+
+2. **Dashboard Overview**
+
+   - Upon login, users land on the **Dashboard** which provides a financial snapshot
+   - Three key metrics are displayed:
+     - **Total Income**: Sum of all income entries added by the user
+     - **Total Expenses**: Aggregate of all tracked expenses
+     - **Current Balance**: Calculated as (Total Income - Total Expenses)
+   - Recent transactions (last 5 expenses) are shown in a table
+   - Quick action buttons provide shortcuts to add expenses or view detailed reports
+
+3. **Income Management**
+
+   - Click "Add Income" button on the dashboard to open the income modal
+   - Enter income details: amount, source (e.g., Salary, Freelance), date, and optional description
+   - Income is stored in Firestore and immediately reflects in the dashboard balance
+
+4. **Expense Tracking**
+
+   - Navigate to the **Expenses** page to manage all expenses
+   - **Add New Expense**: Click "+ Add Expense" to open a modal form
+     - Enter amount, select category (Food, Transport, Utilities, etc.)
+     - Specify date and optional description
+     - Submit to save to Firebase Firestore
+   - **View All Expenses**: See complete expense list in a sortable table format
+   - **Filter by Category**: Use the dropdown to filter expenses by specific categories
+   - **Edit Expenses**: Click the edit icon to modify any expense details
+   - **Delete Expenses**: Remove unwanted entries with confirmation prompt
+
+5. **Reports & Analytics**
+
+   - The **Reports** page provides visual insights into spending patterns
+   - **Category Distribution**: Pie chart showing percentage breakdown by category
+   - **Monthly Trends**: Bar chart displaying spending over the last 6 months
+   - **Summary Statistics**: Quick stats including total expenses, number of categories, and average monthly spending
+   - **Category Breakdown Table**: Detailed table with amounts, percentages, and visual progress bars
+
+6. **Settings & Profile**
+   - **Profile Management**: Update username (display name)
+   - **Email Update**: Change login email with password verification
+   - **Password Change**: Update password with current password confirmation
+   - **Logout**: Sign out from all devices
+
+### Data Flow & Architecture
+
+```
+User Action → JavaScript Event → Firebase API Call → Firestore Database
+                                                           ↓
+User Interface ← Data Processing ← Response ←──────────────┘
+```
+
+**Key Components:**
+
+- **`auth.js`**: Handles all authentication operations (register, login, logout, profile updates)
+- **`app.js`**: Core application logic including:
+  - Firestore CRUD operations (Create, Read, Update, Delete)
+  - Data calculations (totals, categories, monthly aggregates)
+  - Chart rendering with Chart.js
+  - Theme management (light/dark mode with localStorage)
+  - UI helpers and utility functions
+- **HTML Pages**: Each page focuses on specific functionality
+  - `index.html`: Login/Register
+  - `dashboard.html`: Financial overview
+  - `expenses.html`: Expense management
+  - `reports.html`: Analytics and charts
+  - `settings.html`: User preferences
+
+### Real-time Features
+
+- **Auto-sync**: All data changes are immediately synced to Firebase Firestore
+- **Live Updates**: Dashboard and reports refresh automatically when expenses are added/modified
+- **State Persistence**: Dark/light theme preference saved in browser localStorage
+- **Skeleton Loading**: Professional loading states while fetching data from Firebase
+
+### Security Model
+
+- **Authentication Required**: All pages (except login) require valid Firebase authentication
+- **User Isolation**: Firestore queries filter by `userId` - users only see their own data
+- **Route Protection**: Unauthenticated users are automatically redirected to login
+- **Secure Operations**: Email and password updates require verification
+
+### Responsive Design
+
+The website automatically adapts to different screen sizes:
+
+- **Mobile**: Optimized layout with touch-friendly buttons and compact navigation
+- **Tablet**: Balanced layout with flexible grid systems
+- **Desktop**: Full-featured interface with all elements visible
+
 ## Technology Stack
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+)
