@@ -4,23 +4,23 @@
    ================================================ */
 
 // Import Firebase modules
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  where, 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
   orderBy,
-  Timestamp 
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  Timestamp,
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Import auth functions
-import { requireAuth, logoutUser, auth } from './auth.js';
+import { requireAuth, logoutUser, auth } from "./auth.js";
 
 /* ===== FIREBASE CONFIGURATION ===== */
 // Same configuration as in auth.js
@@ -31,7 +31,7 @@ const firebaseConfig = {
   storageBucket: "finance-management-c1606.firebasestorage.app",
   messagingSenderId: "218397477276",
   appId: "1:218397477276:web:80301ec7216e51f0142059",
-  measurementId: "G-9CQDMQV4QX"
+  measurementId: "G-9CQDMQV4QX",
 };
 
 // Initialize Firebase (if not already initialized)
@@ -48,9 +48,9 @@ let allExpenses = [];
  * Load saved theme from localStorage and apply it
  */
 export function loadTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  
+  const savedTheme = localStorage.getItem("theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+
   // Update theme toggle icon
   updateThemeIcon(savedTheme);
 }
@@ -59,12 +59,12 @@ export function loadTheme() {
  * Toggle between light and dark theme
  */
 export function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  
+  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const newTheme = currentTheme === "light" ? "dark" : "light";
+
+  document.documentElement.setAttribute("data-theme", newTheme);
+  localStorage.setItem("theme", newTheme);
+
   // Update theme toggle icon
   updateThemeIcon(newTheme);
 }
@@ -74,11 +74,12 @@ export function toggleTheme() {
  * @param {string} theme - Current theme ('light' or 'dark')
  */
 function updateThemeIcon(theme) {
-  const themeToggle = document.getElementById('themeToggle');
+  const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) {
-    themeToggle.innerHTML = theme === 'light' 
-      ? '<i class="fas fa-moon"></i>' 
-      : '<i class="fas fa-sun"></i>';
+    themeToggle.innerHTML =
+      theme === "light"
+        ? '<i class="fas fa-moon"></i>'
+        : '<i class="fas fa-sun"></i>';
   }
 }
 
@@ -92,39 +93,39 @@ function updateThemeIcon(theme) {
 export async function addExpense(expenseData) {
   try {
     if (!currentUser) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
-    
+
     // Validate expense data
     if (!expenseData.amount || expenseData.amount <= 0) {
-      throw new Error('Please enter a valid amount');
+      throw new Error("Please enter a valid amount");
     }
-    
+
     if (!expenseData.category) {
-      throw new Error('Please select a category');
+      throw new Error("Please select a category");
     }
-    
+
     if (!expenseData.date) {
-      throw new Error('Please select a date');
+      throw new Error("Please select a date");
     }
-    
+
     // Create expense document
     const expense = {
       userId: currentUser.uid,
       amount: parseFloat(expenseData.amount),
       category: expenseData.category,
       date: Timestamp.fromDate(new Date(expenseData.date)),
-      description: expenseData.description || '',
-      createdAt: Timestamp.now()
+      description: expenseData.description || "",
+      createdAt: Timestamp.now(),
     };
-    
+
     // Add to Firestore
-    const docRef = await addDoc(collection(db, 'expenses'), expense);
-    console.log('Expense added with ID:', docRef.id);
-    
+    const docRef = await addDoc(collection(db, "expenses"), expense);
+    console.log("Expense added with ID:", docRef.id);
+
     return docRef;
   } catch (error) {
-    console.error('Error adding expense:', error);
+    console.error("Error adding expense:", error);
     throw error;
   }
 }
@@ -136,31 +137,31 @@ export async function addExpense(expenseData) {
 export async function getExpenses() {
   try {
     if (!currentUser) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
-    
+
     // Query expenses for current user
     const q = query(
-      collection(db, 'expenses'),
-      where('userId', '==', currentUser.uid),
-      orderBy('date', 'desc')
+      collection(db, "expenses"),
+      where("userId", "==", currentUser.uid),
+      orderBy("date", "desc")
     );
-    
+
     const querySnapshot = await getDocs(q);
     const expenses = [];
-    
+
     querySnapshot.forEach((doc) => {
       expenses.push({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       });
     });
-    
+
     console.log(`Loaded ${expenses.length} expenses`);
     allExpenses = expenses;
     return expenses;
   } catch (error) {
-    console.error('Error fetching expenses:', error);
+    console.error("Error fetching expenses:", error);
     throw error;
   }
 }
@@ -174,35 +175,35 @@ export async function getExpenses() {
 export async function updateExpense(expenseId, updatedData) {
   try {
     if (!expenseId) {
-      throw new Error('Expense ID is required');
+      throw new Error("Expense ID is required");
     }
-    
+
     // Prepare update object
     const updateObj = {};
-    
+
     if (updatedData.amount) {
       updateObj.amount = parseFloat(updatedData.amount);
     }
-    
+
     if (updatedData.category) {
       updateObj.category = updatedData.category;
     }
-    
+
     if (updatedData.date) {
       updateObj.date = Timestamp.fromDate(new Date(updatedData.date));
     }
-    
+
     if (updatedData.description !== undefined) {
       updateObj.description = updatedData.description;
     }
-    
+
     // Update in Firestore
-    const expenseRef = doc(db, 'expenses', expenseId);
+    const expenseRef = doc(db, "expenses", expenseId);
     await updateDoc(expenseRef, updateObj);
-    
-    console.log('Expense updated:', expenseId);
+
+    console.log("Expense updated:", expenseId);
   } catch (error) {
-    console.error('Error updating expense:', error);
+    console.error("Error updating expense:", error);
     throw error;
   }
 }
@@ -215,13 +216,13 @@ export async function updateExpense(expenseId, updatedData) {
 export async function deleteExpense(expenseId) {
   try {
     if (!expenseId) {
-      throw new Error('Expense ID is required');
+      throw new Error("Expense ID is required");
     }
-    
-    await deleteDoc(doc(db, 'expenses', expenseId));
-    console.log('Expense deleted:', expenseId);
+
+    await deleteDoc(doc(db, "expenses", expenseId));
+    console.log("Expense deleted:", expenseId);
   } catch (error) {
-    console.error('Error deleting expense:', error);
+    console.error("Error deleting expense:", error);
     throw error;
   }
 }
@@ -236,39 +237,39 @@ export async function deleteExpense(expenseId) {
 export async function addIncome(incomeData) {
   try {
     if (!currentUser) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
-    
+
     // Validate income data
     if (!incomeData.amount || incomeData.amount <= 0) {
-      throw new Error('Please enter a valid amount');
+      throw new Error("Please enter a valid amount");
     }
-    
+
     if (!incomeData.source) {
-      throw new Error('Please enter a source');
+      throw new Error("Please enter a source");
     }
-    
+
     if (!incomeData.date) {
-      throw new Error('Please select a date');
+      throw new Error("Please select a date");
     }
-    
+
     // Create income document
     const income = {
       userId: currentUser.uid,
       amount: parseFloat(incomeData.amount),
       source: incomeData.source,
       date: Timestamp.fromDate(new Date(incomeData.date)),
-      description: incomeData.description || '',
-      createdAt: Timestamp.now()
+      description: incomeData.description || "",
+      createdAt: Timestamp.now(),
     };
-    
+
     // Add to Firestore
-    const docRef = await addDoc(collection(db, 'income'), income);
-    console.log('Income added with ID:', docRef.id);
-    
+    const docRef = await addDoc(collection(db, "income"), income);
+    console.log("Income added with ID:", docRef.id);
+
     return docRef;
   } catch (error) {
-    console.error('Error adding income:', error);
+    console.error("Error adding income:", error);
     throw error;
   }
 }
@@ -280,30 +281,30 @@ export async function addIncome(incomeData) {
 export async function getIncome() {
   try {
     if (!currentUser) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
-    
+
     // Query income for current user
     const q = query(
-      collection(db, 'income'),
-      where('userId', '==', currentUser.uid),
-      orderBy('date', 'desc')
+      collection(db, "income"),
+      where("userId", "==", currentUser.uid),
+      orderBy("date", "desc")
     );
-    
+
     const querySnapshot = await getDocs(q);
     const income = [];
-    
+
     querySnapshot.forEach((doc) => {
       income.push({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       });
     });
-    
+
     console.log(`Loaded ${income.length} income entries`);
     return income;
   } catch (error) {
-    console.error('Error fetching income:', error);
+    console.error("Error fetching income:", error);
     throw error;
   }
 }
@@ -335,15 +336,15 @@ export function calculateTotalExpenses(expenses) {
  */
 export function calculateCategoryTotals(expenses) {
   const categoryTotals = {};
-  
-  expenses.forEach(expense => {
+
+  expenses.forEach((expense) => {
     if (categoryTotals[expense.category]) {
       categoryTotals[expense.category] += expense.amount;
     } else {
       categoryTotals[expense.category] = expense.amount;
     }
   });
-  
+
   return categoryTotals;
 }
 
@@ -356,24 +357,30 @@ export function calculateCategoryTotals(expenses) {
 export function calculateMonthlyTotals(expenses, months = 6) {
   const monthlyTotals = {};
   const now = new Date();
-  
+
   // Initialize last N months
   for (let i = months - 1; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    const monthKey = date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+    });
     monthlyTotals[monthKey] = 0;
   }
-  
+
   // Sum expenses by month
-  expenses.forEach(expense => {
+  expenses.forEach((expense) => {
     const expenseDate = expense.date.toDate();
-    const monthKey = expenseDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-    
+    const monthKey = expenseDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+    });
+
     if (monthlyTotals.hasOwnProperty(monthKey)) {
       monthlyTotals[monthKey] += expense.amount;
     }
   });
-  
+
   return monthlyTotals;
 }
 
@@ -394,10 +401,10 @@ export function getRecentExpenses(expenses, limit = 5) {
  * @returns {Array} Filtered expenses
  */
 export function filterByCategory(expenses, category) {
-  if (!category || category === 'all') {
+  if (!category || category === "all") {
     return expenses;
   }
-  return expenses.filter(expense => expense.category === category);
+  return expenses.filter((expense) => expense.category === category);
 }
 
 /* ===== FORMATTING HELPERS ===== */
@@ -408,11 +415,11 @@ export function filterByCategory(expenses, category) {
  * @returns {string} Formatted currency string
  */
 export function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-PK', {
-    style: 'currency',
-    currency: 'PKR',
+  return new Intl.NumberFormat("en-PK", {
+    style: "currency",
+    currency: "PKR",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(amount);
 }
 
@@ -422,13 +429,13 @@ export function formatCurrency(amount) {
  * @returns {string} Formatted date string
  */
 export function formatDate(timestamp) {
-  if (!timestamp) return '';
-  
+  if (!timestamp) return "";
+
   const date = timestamp.toDate();
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -438,10 +445,10 @@ export function formatDate(timestamp) {
  * @returns {string} Formatted date string for input
  */
 export function formatDateForInput(timestamp) {
-  if (!timestamp) return '';
-  
+  if (!timestamp) return "";
+
   const date = timestamp.toDate();
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 }
 
 /* ===== UI HELPERS ===== */
@@ -453,8 +460,8 @@ export function formatDateForInput(timestamp) {
 export function showModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden'; // Prevent background scroll
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden"; // Prevent background scroll
   }
 }
 
@@ -465,8 +472,8 @@ export function showModal(modalId) {
 export function hideModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
-    modal.classList.remove('active');
-    document.body.style.overflow = ''; // Restore scroll
+    modal.classList.remove("active");
+    document.body.style.overflow = ""; // Restore scroll
   }
 }
 
@@ -474,9 +481,9 @@ export function hideModal(modalId) {
  * Show loading spinner
  */
 export function showLoading() {
-  const loading = document.getElementById('loading');
+  const loading = document.getElementById("loading");
   if (loading) {
-    loading.classList.add('active');
+    loading.classList.add("active");
   }
 }
 
@@ -484,9 +491,9 @@ export function showLoading() {
  * Hide loading spinner
  */
 export function hideLoading() {
-  const loading = document.getElementById('loading');
+  const loading = document.getElementById("loading");
   if (loading) {
-    loading.classList.remove('active');
+    loading.classList.remove("active");
   }
 }
 
@@ -494,11 +501,11 @@ export function hideLoading() {
 
 // Create toast container if it doesn't exist
 function ensureToastContainer() {
-  let container = document.getElementById('toastContainer');
+  let container = document.getElementById("toastContainer");
   if (!container) {
-    container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container';
+    container = document.createElement("div");
+    container.id = "toastContainer";
+    container.className = "toast-container";
     document.body.appendChild(container);
   }
   return container;
@@ -510,31 +517,31 @@ function ensureToastContainer() {
  * @param {string} type - Toast type: 'success', 'error', 'warning', 'info'
  * @param {number} duration - Duration in milliseconds (default: 5000)
  */
-function showToast(message, type = 'info', duration = 5000) {
+function showToast(message, type = "info", duration = 5000) {
   const container = ensureToastContainer();
-  
+
   // Create toast element
-  const toast = document.createElement('div');
+  const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
-  toast.style.position = 'relative';
-  toast.style.setProperty('--duration', `${duration}ms`);
-  
+  toast.style.position = "relative";
+  toast.style.setProperty("--duration", `${duration}ms`);
+
   // Icon based on type
   const icons = {
-    success: 'fa-check-circle',
-    error: 'fa-exclamation-circle',
-    warning: 'fa-exclamation-triangle',
-    info: 'fa-info-circle'
+    success: "fa-check-circle",
+    error: "fa-exclamation-circle",
+    warning: "fa-exclamation-triangle",
+    info: "fa-info-circle",
   };
-  
+
   // Titles based on type
   const titles = {
-    success: 'Success',
-    error: 'Error',
-    warning: 'Warning',
-    info: 'Info'
+    success: "Success",
+    error: "Error",
+    warning: "Warning",
+    info: "Info",
   };
-  
+
   toast.innerHTML = `
     <div class="toast-icon">
       <i class="fas ${icons[type]}"></i>
@@ -548,16 +555,16 @@ function showToast(message, type = 'info', duration = 5000) {
     </button>
     <div class="toast-progress"></div>
   `;
-  
+
   // Add to container
   container.appendChild(toast);
-  
+
   // Close button functionality
-  const closeBtn = toast.querySelector('.toast-close');
-  closeBtn.addEventListener('click', () => {
+  const closeBtn = toast.querySelector(".toast-close");
+  closeBtn.addEventListener("click", () => {
     removeToast(toast);
   });
-  
+
   // Auto remove after duration
   setTimeout(() => {
     removeToast(toast);
@@ -570,9 +577,9 @@ function showToast(message, type = 'info', duration = 5000) {
  */
 function removeToast(toast) {
   if (!toast || !toast.parentElement) return;
-  
-  toast.classList.add('hiding');
-  
+
+  toast.classList.add("hiding");
+
   // Remove from DOM after animation
   setTimeout(() => {
     if (toast.parentElement) {
@@ -586,7 +593,7 @@ function removeToast(toast) {
  * @param {string} message - Error message to display
  */
 export function showError(message) {
-  showToast(message, 'error', 6000);
+  showToast(message, "error", 6000);
 }
 
 /**
@@ -594,7 +601,7 @@ export function showError(message) {
  * @param {string} message - Success message to display
  */
 export function showSuccess(message) {
-  showToast(message, 'success', 4000);
+  showToast(message, "success", 4000);
 }
 
 /**
@@ -602,7 +609,7 @@ export function showSuccess(message) {
  * @param {string} message - Warning message to display
  */
 export function showWarning(message) {
-  showToast(message, 'warning', 5000);
+  showToast(message, "warning", 5000);
 }
 
 /**
@@ -610,7 +617,7 @@ export function showWarning(message) {
  * @param {string} message - Info message to display
  */
 export function showInfo(message) {
-  showToast(message, 'info', 4000);
+  showToast(message, "info", 4000);
 }
 
 /* ===== SKELETON LOADING ===== */
@@ -619,9 +626,9 @@ export function showInfo(message) {
  * Show skeleton loading for stats cards
  */
 export function showStatsSkeletons() {
-  const statsGrid = document.querySelector('.stats-grid');
+  const statsGrid = document.querySelector(".stats-grid");
   if (!statsGrid) return;
-  
+
   statsGrid.innerHTML = `
     <div class="skeleton-stat-card">
       <div class="skeleton skeleton-icon"></div>
@@ -649,13 +656,13 @@ export function showStatsSkeletons() {
 export function showTableSkeleton(containerId, rows = 5) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  
+
   let html = `
     <div class="table-container">
       <table class="skeleton-table">
         <tbody>
   `;
-  
+
   for (let i = 0; i < rows; i++) {
     html += `
       <tr class="skeleton-table-row">
@@ -674,13 +681,13 @@ export function showTableSkeleton(containerId, rows = 5) {
       </tr>
     `;
   }
-  
+
   html += `
         </tbody>
       </table>
     </div>
   `;
-  
+
   container.innerHTML = html;
 }
 
@@ -691,16 +698,16 @@ export function showTableSkeleton(containerId, rows = 5) {
  */
 export function getCategoryIcon(category) {
   const icons = {
-    'Food': 'fa-utensils',
-    'Transport': 'fa-car',
-    'Utilities': 'fa-bolt',
-    'Entertainment': 'fa-film',
-    'Shopping': 'fa-shopping-bag',
-    'Healthcare': 'fa-heart-pulse',
-    'Other': 'fa-circle'
+    Food: "fa-utensils",
+    Transport: "fa-car",
+    Utilities: "fa-bolt",
+    Entertainment: "fa-film",
+    Shopping: "fa-shopping-bag",
+    Healthcare: "fa-heart-pulse",
+    Other: "fa-circle",
   };
-  
-  return icons[category] || icons['Other'];
+
+  return icons[category] || icons["Other"];
 }
 
 /**
@@ -716,12 +723,12 @@ export function getCategoryBadge(category) {
  * Show loading state on stats cards (without replacing HTML)
  */
 export function showStatsLoading() {
-  const statsCards = document.querySelectorAll('.stat-value');
-  statsCards.forEach(card => {
+  const statsCards = document.querySelectorAll(".stat-value");
+  statsCards.forEach((card) => {
     if (card) {
-      card.style.opacity = '0.3';
-      card.style.filter = 'blur(4px)';
-      card.style.transition = 'all 0.3s ease';
+      card.style.opacity = "0.3";
+      card.style.filter = "blur(4px)";
+      card.style.transition = "all 0.3s ease";
     }
   });
 }
@@ -730,11 +737,11 @@ export function showStatsLoading() {
  * Hide loading state on stats cards
  */
 export function hideStatsLoading() {
-  const statsCards = document.querySelectorAll('.stat-value');
-  statsCards.forEach(card => {
+  const statsCards = document.querySelectorAll(".stat-value");
+  statsCards.forEach((card) => {
     if (card) {
-      card.style.opacity = '1';
-      card.style.filter = 'none';
+      card.style.opacity = "1";
+      card.style.filter = "none";
     }
   });
 }
@@ -746,72 +753,76 @@ export function hideStatsLoading() {
  * @param {Object} categoryData - Object with categories and amounts
  * @param {string} canvasId - ID of canvas element
  */
-export function renderPieChart(categoryData, canvasId = 'categoryChart') {
+export function renderPieChart(categoryData, canvasId = "categoryChart") {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  
-  const ctx = canvas.getContext('2d');
-  
+
+  const ctx = canvas.getContext("2d");
+
   // Destroy existing chart if it exists
   if (window.categoryChartInstance) {
     window.categoryChartInstance.destroy();
   }
-  
+
   // Prepare data
   const labels = Object.keys(categoryData);
   const data = Object.values(categoryData);
-  
+
   // Category colors
   const colors = {
-    'Food': '#ef4444',
-    'Transport': '#3b82f6',
-    'Utilities': '#f59e0b',
-    'Entertainment': '#a855f7',
-    'Shopping': '#ec4899',
-    'Healthcare': '#10b981',
-    'Other': '#6b7280'
+    Food: "#ef4444",
+    Transport: "#3b82f6",
+    Utilities: "#f59e0b",
+    Entertainment: "#a855f7",
+    Shopping: "#ec4899",
+    Healthcare: "#10b981",
+    Other: "#6b7280",
   };
-  
-  const backgroundColors = labels.map(label => colors[label] || colors['Other']);
-  
+
+  const backgroundColors = labels.map(
+    (label) => colors[label] || colors["Other"]
+  );
+
   // Create chart
   window.categoryChartInstance = new Chart(ctx, {
-    type: 'pie',
+    type: "pie",
     data: {
       labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: backgroundColors,
-        borderWidth: 2,
-        borderColor: '#ffffff'
-      }]
+      datasets: [
+        {
+          data: data,
+          backgroundColor: backgroundColors,
+          borderWidth: 2,
+          borderColor: "#ffffff",
+        },
+      ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: true,
       plugins: {
         legend: {
-          position: 'bottom',
+          position: "bottom",
           labels: {
             padding: 15,
             font: {
-              size: 12
-            }
-          }
+              size: 12,
+            },
+          },
         },
         tooltip: {
           callbacks: {
-            label: function(context) {
-              const label = context.label || '';
+            label: function (context) {
+              const label = context.label || "";
               const value = formatCurrency(context.parsed);
               const total = context.dataset.data.reduce((a, b) => a + b, 0);
               const percentage = ((context.parsed / total) * 100).toFixed(1);
               return `${label}: ${value} (${percentage}%)`;
-            }
-          }
-        }
-      }
-    }
+            },
+          },
+        },
+      },
+    },
   });
 }
 
@@ -820,34 +831,36 @@ export function renderPieChart(categoryData, canvasId = 'categoryChart') {
  * @param {Object} monthlyData - Object with months and amounts
  * @param {string} canvasId - ID of canvas element
  */
-export function renderBarChart(monthlyData, canvasId = 'monthlyChart') {
+export function renderBarChart(monthlyData, canvasId = "monthlyChart") {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  
-  const ctx = canvas.getContext('2d');
-  
+
+  const ctx = canvas.getContext("2d");
+
   // Destroy existing chart if it exists
   if (window.monthlyChartInstance) {
     window.monthlyChartInstance.destroy();
   }
-  
+
   // Prepare data
   const labels = Object.keys(monthlyData);
   const data = Object.values(monthlyData);
-  
+
   // Create chart
   window.monthlyChartInstance = new Chart(ctx, {
-    type: 'bar',
+    type: "bar",
     data: {
       labels: labels,
-      datasets: [{
-        label: 'Monthly Spending',
-        data: data,
-        backgroundColor: 'rgba(99, 102, 241, 0.8)',
-        borderColor: 'rgba(99, 102, 241, 1)',
-        borderWidth: 2,
-        borderRadius: 8
-      }]
+      datasets: [
+        {
+          label: "Monthly Spending",
+          data: data,
+          backgroundColor: "rgba(99, 102, 241, 0.8)",
+          borderColor: "rgba(99, 102, 241, 1)",
+          borderWidth: 2,
+          borderRadius: 8,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -856,25 +869,25 @@ export function renderBarChart(monthlyData, canvasId = 'monthlyChart') {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: function(value) {
+            callback: function (value) {
               return formatCurrency(value);
-            }
-          }
-        }
+            },
+          },
+        },
       },
       plugins: {
         legend: {
-          display: false
+          display: false,
         },
         tooltip: {
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               return formatCurrency(context.parsed.y);
-            }
-          }
-        }
-      }
-    }
+            },
+          },
+        },
+      },
+    },
   });
 }
 
@@ -887,24 +900,24 @@ export async function initApp() {
   try {
     // Load theme
     loadTheme();
-    
+
     // Check authentication
     currentUser = await requireAuth();
-    
+
     if (!currentUser) {
       return; // requireAuth will redirect
     }
-    
+
     // Setup theme toggle
-    const themeToggle = document.getElementById('themeToggle');
+    const themeToggle = document.getElementById("themeToggle");
     if (themeToggle) {
-      themeToggle.addEventListener('click', toggleTheme);
+      themeToggle.addEventListener("click", toggleTheme);
     }
-    
+
     // Setup logout button
-    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', async (e) => {
+      logoutBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         try {
           await logoutUser();
@@ -913,26 +926,26 @@ export async function initApp() {
         }
       });
     }
-    
+
     // Display user name/email in navbar if element exists
-    const userEmailElement = document.getElementById('userEmail');
-    const userNameElement = document.querySelector('.user-name');
-    
+    const userEmailElement = document.getElementById("userEmail");
+    const userNameElement = document.querySelector(".user-name");
+
     if (userEmailElement && currentUser.email) {
       userEmailElement.textContent = currentUser.email;
     }
-    
+
     if (userNameElement && currentUser.displayName) {
       userNameElement.textContent = currentUser.displayName;
     } else if (userNameElement && currentUser.email) {
       // Fallback to email if no display name
-      userNameElement.textContent = currentUser.email.split('@')[0];
+      userNameElement.textContent = currentUser.email.split("@")[0];
     }
-    
-    console.log('App initialized successfully');
+
+    console.log("App initialized successfully");
   } catch (error) {
-    console.error('App initialization error:', error);
-    showError('Failed to initialize app');
+    console.error("App initialization error:", error);
+    showError("Failed to initialize app");
   }
 }
 
@@ -945,3 +958,44 @@ export function getUser() {
 export function getAllExpenses() {
   return allExpenses;
 }
+/* ===== SIDEBAR & NAVIGATION ===== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const mobileToggle = document.getElementById("mobileToggle");
+  const sidebarToggle = document.getElementById("sidebarToggle"); // Desktop toggle
+  const sidebar = document.getElementById("sidebar");
+  const sidebarOverlay = document.getElementById("sidebarOverlay");
+  const mainContent = document.querySelector(".main-content");
+  
+  // Mobile Sidebar Toggle
+  if (mobileToggle && sidebar && sidebarOverlay) {
+    mobileToggle.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+      sidebarOverlay.classList.toggle("active");
+    });
+
+    sidebarOverlay.addEventListener("click", () => {
+      sidebar.classList.remove("active");
+      sidebarOverlay.classList.remove("active");
+    });
+  }
+  
+  // Desktop Sidebar Collapse
+  if (sidebarToggle && sidebar && mainContent) {
+    // Check saved state
+    const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+    if (isCollapsed) {
+      sidebar.classList.add("collapsed");
+      mainContent.classList.add("expanded");
+    }
+    
+    sidebarToggle.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      mainContent.classList.toggle("expanded");
+      
+      // Save state
+      const collapsed = sidebar.classList.contains("collapsed");
+      localStorage.setItem("sidebarCollapsed", collapsed);
+    });
+  }
+});

@@ -31,8 +31,21 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
+    <!-- Mobile Toggle -->
+    <button class="mobile-toggle" id="mobileToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Desktop Toggle Button -->
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
       <div class="navbar-brand">
         <img
           src="assets/logo.svg"
@@ -67,34 +80,27 @@
             <span class="nav-text">Settings</span></a
           >
         </li>
-        <li>
-          <button
-            id="themeToggle"
-            class="theme-toggle"
-            aria-label="Toggle theme"
-          >
-            <i class="fas fa-moon"></i>
-          </button>
-        </li>
-        <li>
-          <div class="user-profile">
-            <img src="assets/user.png" alt="User Avatar" class="user-avatar" />
-            <div class="user-info hide-mobile">
-              <div class="user-name">User</div>
-              <div class="user-email" id="userEmail">user@example.com</div>
-            </div>
-          </div>
-        </li>
-        <li>
-          <button id="logoutBtn" class="btn btn-secondary btn-sm">
-            <i class="fas fa-sign-out-alt"></i>
-            <span class="nav-text">Logout</span>
-          </button>
-        </li>
       </ul>
-    </nav>
+
+      <div class="user-profile">
+        <img src="assets/user.png" alt="User Avatar" class="user-avatar" />
+        <div class="user-info">
+          <div class="user-name">User</div>
+          <div class="user-email" id="userEmail">user@example.com</div>
+        </div>
+        <button id="logoutBtn" class="btn-logout" aria-label="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Floating Theme Toggle -->
+    <button id="themeToggle" class="theme-toggle-floating" aria-label="Toggle theme">
+      <i class="fas fa-moon"></i>
+    </button>
 
     <!-- Main Content -->
+    <main class="main-content">
     <div class="container page-content">
       <!-- Page Header -->
       <div
@@ -160,6 +166,7 @@
         </button>
       </div>
     </div>
+    </main>
 
     <!-- Add/Edit Expense Modal -->
     <div id="expenseModal" class="modal">
