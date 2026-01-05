@@ -279,7 +279,8 @@
         if (recentExpenses.length > 0) {
           displayRecentExpenses(recentExpenses);
         } else {
-          // Show empty state
+          // Clear skeleton loading and show empty state
+          document.getElementById('recentExpensesContainer').innerHTML = '';
           document.getElementById('emptyState').classList.remove('hidden');
         }
         

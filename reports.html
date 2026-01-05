@@ -160,7 +160,7 @@
     <!-- Empty State -->
     <div id="emptyState" class="empty-state hidden">
       <img src="assets/empty-state.png" alt="No data">
-      <h3>No Data Available</h3>
+      <h3>No Expenses Added Yet</h3>
       <p>Start adding expenses to see your reports and analytics</p>
       <button class="btn btn-primary" onclick="window.location.href='expenses.html'">
         <i class="fas fa-plus"></i> Add Expenses
@@ -200,6 +200,8 @@
         const expenses = await getExpenses();
         
         if (expenses.length === 0) {
+          // Hide stats loading to remove blur effect
+          hideStatsLoading();
           // Show empty state
           document.getElementById('emptyState').classList.remove('hidden');
           hideLoading();
