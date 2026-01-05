@@ -31,137 +31,130 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- Authentication Container -->
-    <div class="auth-container">
-      <div class="auth-card">
-        <!-- Header with Logo -->
-        <div class="auth-header">
-          <img src="assets/logo.svg" alt="PET Logo" class="auth-logo" onerror="this.onerror=null; this.src='assets/logo.png';" />
-          <h1 class="auth-title">Personal Expense Tracker</h1>
-          <p class="auth-subtitle">Manage your finances with ease</p>
+  <!-- Fixed Theme Toggle Button -->
+  <button id="themeToggle" class="theme-toggle-fixed" aria-label="Toggle theme">
+    <i class="fas fa-moon"></i>
+  </button>
+
+  <!-- Authentication Container -->
+  <div class="auth-container">
+    <div class="auth-card">
+      <!-- Compact Header with Inline Logo -->
+      <div class="auth-logo-inline">
+        <img src="assets/logo.svg" onerror="this.onerror=null; this.src='assets/logo.png';" alt="Logo">
+        <h1>Personal Expense Tracker</h1>
+      </div>
+
+      <!-- Error/Success Messages -->
+      <div id="messageContainer"></div>
+
+      <!-- Login Form -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail" class="form-label">
+            <i class="fas fa-envelope"></i> Email Address
+          </label>
+          <input
+            type="email"
+            id="loginEmail"
+            class="form-input"
+            placeholder="Enter your email"
+            required
+            autocomplete="email"
+          />
         </div>
 
-        <!-- Error/Success Messages -->
-        <div id="messageContainer"></div>
+        <div class="form-group">
+          <label for="loginPassword" class="form-label">
+            <i class="fas fa-lock"></i> Password
+          </label>
+          <input
+            type="password"
+            id="loginPassword"
+            class="form-input"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          />
+        </div>
 
-        <!-- Login Form -->
-        <form id="loginForm" class="auth-form">
-          <div class="form-group">
-            <label for="loginEmail" class="form-label">
-              <i class="fas fa-envelope"></i> Email Address
-            </label>
-            <input
-              type="email"
-              id="loginEmail"
-              class="form-input"
-              placeholder="Enter your email"
-              required
-              autocomplete="email"
-            />
-          </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+      </form>
 
-          <div class="form-group">
-            <label for="loginPassword" class="form-label">
-              <i class="fas fa-lock"></i> Password
-            </label>
-            <input
-              type="password"
-              id="loginPassword"
-              class="form-input"
-              placeholder="Enter your password"
-              required
-              autocomplete="current-password"
-            />
-          </div>
-
-          <button type="submit" class="btn btn-primary" style="width: 100%">
-            <i class="fas fa-sign-in-alt"></i> Login
-          </button>
-        </form>
-
-        <!-- Register Form (Hidden by default) -->
-        <form id="registerForm" class="auth-form hidden">
-          <div class="form-group">
-            <label for="registerName" class="form-label">
-              <i class="fas fa-user"></i> Username
-            </label>
+      <!-- Register Form (Hidden by default) -->
+      <form id="registerForm" class="hidden">
+        <div class="form-group">
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
             <input
               type="text"
               id="registerName"
               class="form-input"
-              placeholder="Enter your username"
+              placeholder="Username"
               required
               autocomplete="name"
             />
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="registerEmail" class="form-label">
-              <i class="fas fa-envelope"></i> Email Address
-            </label>
+        <div class="form-group">
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
             <input
               type="email"
               id="registerEmail"
               class="form-input"
-              placeholder="Enter your email"
+              placeholder="Email Address"
               required
               autocomplete="email"
             />
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="registerPassword" class="form-label">
-              <i class="fas fa-lock"></i> Password
-            </label>
+        <div class="form-group">
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
             <input
               type="password"
               id="registerPassword"
               class="form-input"
-              placeholder="Create a password (min 6 characters)"
+              placeholder="Password (min 6 characters)"
               required
               autocomplete="new-password"
             />
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="registerPasswordConfirm" class="form-label">
-              <i class="fas fa-lock"></i> Confirm Password
-            </label>
+        <div class="form-group">
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
             <input
               type="password"
               id="registerPasswordConfirm"
               class="form-input"
-              placeholder="Confirm your password"
+              placeholder="Confirm Password"
               required
               autocomplete="new-password"
             />
           </div>
-
-          <button type="submit" class="btn btn-primary" style="width: 100%">
-            <i class="fas fa-user-plus"></i> Register
-          </button>
-        </form>
-
-        <!-- Toggle between Login/Register -->
-        <div class="auth-toggle">
-          <p id="toggleText">
-            Don't have an account?
-            <a href="#" id="toggleLink">Register here</a>
-          </p>
         </div>
 
-        <!-- Theme Toggle -->
-        <div class="text-center mt-4">
-          <button
-            id="themeToggle"
-            class="theme-toggle"
-            aria-label="Toggle theme"
-          >
-            <i class="fas fa-moon"></i>
-          </button>
-        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">
+          <i class="fas fa-user-plus"></i> Register
+        </button>
+      </form>
+
+      <!-- Toggle between Login/Register -->
+      <div class="auth-toggle">
+        <p id="toggleText">
+          Don't have an account?
+          <a href="#" id="toggleLink">Register here</a>
+        </p>
       </div>
     </div>
+  </div>
 
     <!-- Loading Spinner -->
     <div id="loading" class="loading">
@@ -190,35 +183,47 @@
       // Form elements
       const loginForm = document.getElementById("loginForm");
       const registerForm = document.getElementById("registerForm");
-      const toggleLink = document.getElementById("toggleLink");
       const toggleText = document.getElementById("toggleText");
       const loading = document.getElementById("loading");
+      const authCard = document.querySelector(".auth-card");
 
-      // Toggle between login and register forms
-      let isLoginMode = true;
+      let isLogin = true;
 
-      toggleLink.addEventListener("click", (e) => {
+      // Toggle function
+      function toggleForms(e) {
         e.preventDefault();
+        
+        // Add flip animation
+        authCard.classList.add("flipping");
+        
+        // Wait a bit before changing forms (mid-flip)
+        setTimeout(() => {
+          if (isLogin) {
+            // Switch to register
+            loginForm.classList.add("hidden");
+            registerForm.classList.remove("hidden");
+            toggleText.innerHTML = 'Already have an account? <a href="#" id="toggleLink">Login here</a>';
+            isLogin = false;
+          } else {
+            // Switch to login
+            registerForm.classList.add("hidden");
+            loginForm.classList.remove("hidden");
+            toggleText.innerHTML = 'Don\'t have an account? <a href="#" id="toggleLink">Register here</a>';
+            isLogin = true;
+          }
+          
+          // Re-attach event listener to new link
+          document.getElementById("toggleLink").addEventListener("click", toggleForms);
+        }, 400); // Change forms halfway through animation
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+          authCard.classList.remove("flipping");
+        }, 800);
+      }
 
-        isLoginMode = !isLoginMode;
-
-        if (isLoginMode) {
-          // Show login form
-          loginForm.classList.remove("hidden");
-          registerForm.classList.add("hidden");
-          toggleText.innerHTML = `Don't have an account? <a href="#" id="toggleLink">Register here</a>`;
-        } else {
-          // Show register form
-          loginForm.classList.add("hidden");
-          registerForm.classList.remove("hidden");
-          toggleText.innerHTML = `Already have an account? <a href="#" id="toggleLink">Login here</a>`;
-        }
-
-        // Re-attach event listener to new link
-        document
-          .getElementById("toggleLink")
-          .addEventListener("click", arguments.callee);
-      });
+      // Initial toggle link attachment
+      document.getElementById("toggleLink").addEventListener("click", toggleForms);
 
       // Handle login form submission
       loginForm.addEventListener("submit", async (e) => {

@@ -50,7 +50,7 @@
       <li><a href="transactions.html"><i class="fas fa-exchange-alt"></i> <span class="nav-text">Transactions</span></a></li>
       <li><a href="expenses.html"><i class="fas fa-list"></i> <span class="nav-text">Expenses</span></a></li>
       <li><a href="reports.html" class="active"><i class="fas fa-chart-pie"></i> <span class="nav-text">Reports</span></a></li>
-      <li><a href="settings.html"><i class="fas fa-cog"></i> <span class="nav-text">Settings</span></a></li>
+      <li style="margin-bottom: 15px;"><a href="settings.html"><i class="fas fa-cog"></i> <span class="nav-text">Settings</span></a></li>
     </ul>
 
     <div class="user-profile">
@@ -116,13 +116,13 @@
       <!-- Week Navigation -->
       <div class="card mb-4">
         <div class="card-body" style="padding: var(--space-3);">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
             <button id="prevWeek" class="btn btn-secondary btn-sm">
-              <i class="fas fa-chevron-left"></i> Previous Week
+              <i class="fas fa-chevron-left"></i> <span class="hide-on-small">Previous Week</span>
             </button>
-            <h3 id="weekRange" style="margin: 0; font-size: 1rem; font-weight: 600;">Loading...</h3>
+            <h3 id="weekRange" style="margin: 0; font-size: 1rem; font-weight: 600; flex: 1; min-width: 140px; text-align: center;">Loading...</h3>
             <button id="nextWeek" class="btn btn-secondary btn-sm">
-              Next Week <i class="fas fa-chevron-right"></i>
+              <span class="hide-on-small">Next Week</span> <i class="fas fa-chevron-right"></i>
             </button>
           </div>
         </div>
