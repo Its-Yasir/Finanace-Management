@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Personal Expense Tracker - Transactions">
+  <title>Transactions - Personal Expense Tracker</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="alternate icon" href="assets/logo.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Mobile Toggle -->
+  <button class="mobile-toggle" id="mobileToggle">
+    <i class="fas fa-bars"></i>
+  </button>
+  
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <!-- Desktop Toggle Button -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <div class="navbar-brand">
+      <img src="assets/logo.svg" onerror="this.onerror=null; this.src='assets/logo.png';" alt="PET Logo">
+      <span>PET</span>
+    </div>
+    
+    <ul class="navbar-nav">
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> <span class="nav-text">Dashboard</span></a></li>
+      <li><a href="transactions.html" class="active"><i class="fas fa-exchange-alt"></i> <span class="nav-text">Transactions</span></a></li>
+      <li><a href="expenses.html"><i class="fas fa-list"></i> <span class="nav-text">Expenses</span></a></li>
+      <li><a href="reports.html"><i class="fas fa-chart-pie"></i> <span class="nav-text">Reports</span></a></li>
+      <li><a href="settings.html"><i class="fas fa-cog"></i> <span class="nav-text">Settings</span></a></li>
+    </ul>
+
+    <div class="user-profile">
+      <img src="assets/user.png" alt="User Avatar" class="user-avatar">
+      <div class="user-info">
+        <div class="user-name">User</div>
+        <div class="user-email" id="userEmail">user@example.com</div>
+      </div>
+      <button id="logoutBtn" class="btn-logout" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Floating Theme Toggle -->
+  <button id="themeToggle" class="theme-toggle-floating" aria-label="Toggle theme">
+    <i class="fas fa-moon"></i>
+  </button>
+
+  <!-- Main Content -->
+  <main class="main-content">
+  <div class="container page-content">
+    <!-- Page Header -->
+    <div class="section-header">
+      <div>
+        <h1 class="section-title">Transactions</h1>
+        <p class="section-subtitle">View all your incomes and expenses</p>
+      </div>
+      <button id="exportBtn" class="btn btn-primary">
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-6">
+      <div class="filters">
+        <button class="btn btn-secondary filter-btn active" data-filter="all">All</button>
+        <button class="btn btn-secondary filter-btn" data-filter="7days">Last 7 Days</button>
+        <button class="btn btn-secondary filter-btn" data-filter="30days">Last 30 Days</button>
+        <div class="form-group mb-0" style="margin-bottom: 0;">
+          <input type="date" id="dateFilter" class="form-input" style="padding: var(--space-2) var(--space-3);">
+        </div>
+        <button id="clearFilterBtn" class="btn btn-secondary btn-sm" style="display: none;">
+          <i class="fas fa-times"></i> Clear Date
+        </button>
+      </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card">
+      <div class="table-container">
+        <table class="table" id="transactionsTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category/Source</th>
+              <th>Type</th>
+              <th class="text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsBody">
+            <!-- Transactions will be loaded here -->
+            <tr>
+              <td colspan="5" class="text-center py-4">Loading transactions...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="noTransactions" class="text-center py-8 hidden">
+        <div class="empty-state">
+          <i class="fas fa-exchange-alt"></i>
+          <h3>No transactions found</h3>
+          <p>Try adjusting your filters or add some incomes/expenses.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <!-- Application Script -->
+  <script type="module">
+    import { 
+      requireAuth, 
+      logoutUser 
+    } from './auth.js';
+    
+    import { 
+      loadTheme, 
+      toggleTheme, 
+      showError,
+      getExpenses,
+      getIncome,
+      getUser,
+      showLoading,
+      hideLoading,
+      formatCurrency,
+      formatDate,
+      initApp
+    } from './app.js';
+
+    let allTransactions = [];
+
+    // Initialize on page load
+    (async function init() {
+      // Wait for auth to complete
+      await requireAuth();
+      
+      // Initialize app (sets currentUser)
+      await initApp();
+      
+      loadTheme();
+      
+      // Sidebar Toggles
+      const mobileToggle = document.getElementById("mobileToggle");
+      const sidebarToggle = document.getElementById("sidebarToggle");
+      const sidebar = document.getElementById("sidebar");
+      const sidebarOverlay = document.getElementById("sidebarOverlay");
+      const mainContent = document.querySelector(".main-content");
+      
+      if (mobileToggle && sidebar && sidebarOverlay) {
+        mobileToggle.addEventListener("click", () => {
+          sidebar.classList.toggle("active");
+          sidebarOverlay.classList.toggle("active");
+        });
+        sidebarOverlay.addEventListener("click", () => {
+          sidebar.classList.remove("active");
+          sidebarOverlay.classList.remove("active");
+        });
+      }
+      
+      if (sidebarToggle && sidebar && mainContent) {
+        const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+        if (isCollapsed) {
+          sidebar.classList.add("collapsed");
+          mainContent.classList.add("expanded");
+        }
+        sidebarToggle.addEventListener("click", () => {
+          sidebar.classList.toggle("collapsed");
+          mainContent.classList.toggle("expanded");
+          localStorage.setItem("sidebarCollapsed", sidebar.classList.contains("collapsed"));
+        });
+      }
+
+      // Load Data after authentication is confirmed
+      await loadTransactions();
+      
+      // Export
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        window.print();
+      });
+
+      // Filters
+      setupFilters();
+    })(); // Execute the init function immediately
+
+    async function loadTransactions() {
+      try {
+        const [expenses, income] = await Promise.all([
+          getExpenses(),
+          getIncome()
+        ]);
+        
+        // Normalize Expense Data
+        const normalizedExpenses = expenses.map(e => ({
+          ...e,
+          type: 'expense',
+          displayCategory: e.category,
+          dateObj: e.date.toDate ? e.date.toDate() : new Date(e.date)
+        }));
+        
+        // Normalize Income Data
+        const normalizedIncome = income.map(i => ({
+          ...i,
+          type: 'income',
+          displayCategory: i.source, // Map source to category column
+          dateObj: i.date.toDate ? i.date.toDate() : new Date(i.date)
+        }));
+        
+        // Merge and Sort
+        allTransactions = [...normalizedExpenses, ...normalizedIncome].sort((a, b) => b.dateObj - a.dateObj);
+        
+        renderTransactions(allTransactions);
+        
+      } catch (error) {
+        console.error("Error loading transactions:", error);
+        showError("Failed to load transactions");
+      }
+    }
+
+    function renderTransactions(transactions) {
+      const tbody = document.getElementById('transactionsBody');
+      const noData = document.getElementById('noTransactions');
+      
+      if (transactions.length === 0) {
+        tbody.innerHTML = '';
+        noData.classList.remove('hidden');
+        return;
+      }
+      
+      noData.classList.add('hidden');
+      
+      tbody.innerHTML = transactions.map(t => `
+        <tr>
+          <td>${formatDate(t.date)}</td>
+          <td>${t.description || '-'}</td>
+          <td>
+            <span class="badge badge-secondary">
+              ${t.displayCategory}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${t.type === 'income' ? 'badge-success' : 'badge-danger'}">
+              ${t.type === 'income' ? 'Income' : 'Expense'}
+            </span>
+          </td>
+          <td class="text-right ${t.type === 'income' ? 'amount-income' : 'amount-expense'}">
+            ${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.amount)}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function setupFilters() {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const dateInput = document.getElementById('dateFilter');
+      const clearDateBtn = document.getElementById('clearFilterBtn');
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Remove active class from all
+          filterBtns.forEach(b => b.classList.remove('active'));
+          dateInput.value = ''; // Clear date input
+          clearDateBtn.style.display = 'none';
+          
+          btn.classList.add('active');
+          const filter = btn.dataset.filter;
+          applyFilter(filter);
+        });
+      });
+
+      dateInput.addEventListener('change', () => {
+        if (dateInput.value) {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          clearDateBtn.style.display = 'inline-flex';
+          applyDateFilter(new Date(dateInput.value));
+        }
+      });
+      
+      clearDateBtn.addEventListener('click', () => {
+        dateInput.value = '';
+        clearDateBtn.style.display = 'none';
+        document.querySelector('[data-filter="all"]').click(); // Reset to all
+      });
+    }
+
+    function applyFilter(filterType) {
+      const now = new Date();
+      let filtered = allTransactions;
+
+      if (filterType === '7days') {
+        const cutoff = new Date();
+        cutoff.setDate(now.getDate() - 7);
+        filtered = allTransactions.filter(t => t.dateObj >= cutoff);
+      } else if (filterType === '30days') {
+        const cutoff = new Date();
+        cutoff.setDate(now.getDate() - 30);
+        filtered = allTransactions.filter(t => t.dateObj >= cutoff);
+      }
+
+      renderTransactions(filtered);
+    }
+    
+    function applyDateFilter(targetDate) {
+      // Create start and end of the target day to handle time components
+      const startOfDay = new Date(targetDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(targetDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const filtered = allTransactions.filter(t => {
+        return t.dateObj >= startOfDay && t.dateObj <= endOfDay;
+      });
+      
+      renderTransactions(filtered);
+    }
+  </script>
+</body>
+</html>

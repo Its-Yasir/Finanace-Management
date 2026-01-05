@@ -1832,12 +1832,58 @@ body {
   }
 }
 
+/* ===== TRANSACTIONS PAGE ===== */
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+  align-items: center;
+}
+
+.amount-income {
+  color: var(--success-500);
+  font-weight: 600;
+}
+
+.amount-expense {
+  color: var(--error-500);
+  font-weight: 600;
+}
+
 /* ===== PRINT STYLES ===== */
 @media print {
   .navbar,
   .btn,
   .theme-toggle,
-  .modal {
+  .modal,
+  .sidebar,
+  .mobile-toggle,
+  .sidebar-overlay,
+  .theme-toggle-floating,
+  .section-header button,
+  .filters {
     display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Ensure table text is black for printing */
+  .table {
+    color: black !important;
   }
 }
