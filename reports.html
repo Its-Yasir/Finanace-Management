@@ -113,40 +113,78 @@
 
     <!-- Charts Section -->
     <div id="chartsSection" class="hidden">
-      <!-- Expenses by Category (Pie Chart) -->
-      <div class="section">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title">
-              <i class="fas fa-chart-pie"></i> Expenses by Category
-            </h2>
-            <p class="text-secondary" style="font-size: 0.875rem;">
-              Distribution of your spending across different categories
-            </p>
+      <!-- Week Navigation -->
+      <div class="card mb-4">
+        <div class="card-body" style="padding: var(--space-3);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button id="prevWeek" class="btn btn-secondary btn-sm">
+              <i class="fas fa-chevron-left"></i> Previous Week
+            </button>
+            <h3 id="weekRange" style="margin: 0; font-size: 1rem; font-weight: 600;">Loading...</h3>
+            <button id="nextWeek" class="btn btn-secondary btn-sm">
+              Next Week <i class="fas fa-chevron-right"></i>
+            </button>
           </div>
-          <div class="card-body">
-            <div style="max-width: 600px; margin: 0 auto;">
-              <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Weekly Charts Grid (2 columns) -->
+      <div class="charts-grid">
+        <!-- Weekly Expenses Chart -->
+        <div class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fas fa-chart-line"></i> Weekly Expenses
+              </h2>
+              <p class="text-secondary" style="font-size: 0.875rem;">
+                Daily expenses for the selected week
+              </p>
+            </div>
+            <div class="card-body">
+              <canvas id="weeklyExpensesChart" style="max-height: 250px;"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Income Chart -->
+        <div class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fas fa-chart-area"></i> Weekly Income
+              </h2>
+              <p class="text-secondary" style="font-size: 0.875rem;">
+                Daily income for the selected week
+              </p>
+            </div>
+            <div class="card-body">
+              <canvas id="weeklyIncomeChart" style="max-height: 250px;"></canvas>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Monthly Spending (Bar Chart) -->
+      <!-- Daily Detail Chart -->
       <div class="section">
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">
-              <i class="fas fa-chart-bar"></i> Monthly Spending Trend
-            </h2>
-            <p class="text-secondary" style="font-size: 0.875rem;">
-              Your expenses over the last 6 months
-            </p>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
+              <div>
+                <h2 class="card-title">
+                  <i class="fas fa-calendar-day"></i> Daily Transactions
+                </h2>
+                <p class="text-secondary" style="font-size: 0.875rem;">
+                  Income and expenses for <span id="selectedDayDisplay">today</span>
+                </p>
+              </div>
+              <div class="form-group mb-0">
+                <input type="date" id="dayPicker" class="form-input" style="padding: var(--space-2) var(--space-3);">
+              </div>
+            </div>
           </div>
           <div class="card-body">
-            <div style="max-width: 800px; margin: 0 auto;">
-              <canvas id="monthlyChart"></canvas>
-            </div>
+            <canvas id="dailyChart" style="max-height: 300px;"></canvas>
           </div>
         </div>
       </div>
@@ -185,20 +223,25 @@
   <script type="module">
     import { 
       initApp, 
-      getExpenses, 
+      getExpenses,
+      getIncome,
       calculateTotalExpenses,
       calculateCategoryTotals,
-      calculateMonthlyTotals,
       formatCurrency,
       getCategoryIcon,
       getCategoryBadge,
-      renderPieChart,
-      renderBarChart,
       showError,
       hideLoading,
       showStatsLoading,
       hideStatsLoading
     } from './app.js';
+
+    let currentWeekOffset = 0; // 0 = current week, -1 = previous week, +1 = next week
+    let allExpenses = [];
+    let allIncome = [];
+    let weeklyExpensesChart = null;
+    let weeklyIncomeChart = null;
+    let dailyChart = null;
 
     // Initialize page and load reports
     async function initializePage() {
@@ -209,11 +252,14 @@
         // Initialize app
         await initApp();
         
-        // Load expenses
-        const expenses = await getExpenses();
+        // Load data
+        [allExpenses, allIncome] = await Promise.all([
+          getExpenses(),
+          getIncome()
+        ]);
         
-        if (expenses.length === 0) {
-          // Hide stats loading to remove blur effect
+        if (allExpenses.length === 0 && allIncome.length === 0) {
+          // Hide stats loading
           hideStatsLoading();
           // Show empty state
           document.getElementById('emptyState').classList.remove('hidden');
@@ -222,16 +268,15 @@
         }
         
         // Calculate analytics
-        const totalExpenses = calculateTotalExpenses(expenses);
-        const categoryTotals = calculateCategoryTotals(expenses);
-        const monthlyTotals = calculateMonthlyTotals(expenses, 6);
+        const totalExpenses = calculateTotalExpenses(allExpenses);
+        const categoryTotals = calculateCategoryTotals(allExpenses);
         
         // Update summary stats
         document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
         document.getElementById('totalCategories').textContent = Object.keys(categoryTotals).length;
         
-        // Calculate average monthly (divide total by 6 months)
-        const avgMonthly = totalExpenses / 6;
+        // Calculate average monthly (simple average)
+        const avgMonthly = allExpenses.length > 0 ? totalExpenses / 6 : 0;
         document.getElementById('avgMonthly').textContent = formatCurrency(avgMonthly);
         
         // Hide stats loading
@@ -240,12 +285,33 @@
         // Show charts section
         document.getElementById('chartsSection').classList.remove('hidden');
         
-        // Render charts
-        renderPieChart(categoryTotals, 'categoryChart');
-        renderBarChart(monthlyTotals, 'monthlyChart');
+        // Render weekly charts
+        renderWeeklyCharts();
         
         // Render category breakdown table
         renderCategoryTable(categoryTotals, totalExpenses);
+        
+        // Setup week navigation
+        document.getElementById('prevWeek').addEventListener('click', () => {
+          currentWeekOffset--;
+          renderWeeklyCharts();
+        });
+        
+        document.getElementById('nextWeek').addEventListener('click', () => {
+          currentWeekOffset++;
+          renderWeeklyCharts();
+        });
+        
+        // Setup daily chart
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        document.getElementById('dayPicker').valueAsDate = today;
+        renderDailyChart(today);
+        
+        document.getElementById('dayPicker').addEventListener('change', (e) => {
+          const selectedDate = new Date(e.target.value + 'T00:00:00');
+          renderDailyChart(selectedDate);
+        });
         
         // Hide loading
         hideLoading();
@@ -255,6 +321,253 @@
         showError('Failed to load reports data');
         hideLoading();
       }
+    }
+
+    // Get start and end of week
+    function getWeekBounds(offset) {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Monday as first day
+      
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + diff + (offset * 7));
+      monday.setHours(0, 0, 0, 0);
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+      
+      return { start: monday, end: sunday };
+    }
+
+    // Format date range for display
+    function formatWeekRange(start, end) {
+      const options = { month: 'short', day: 'numeric' };
+      const startStr = start.toLocaleDateString('en-US', options);
+      const endStr = end.toLocaleDateString('en-US', options);
+      return `${startStr} - ${endStr}, ${end.getFullYear()}`;
+    }
+
+    // Get daily totals for a week
+    function getDailyTotals(transactions, weekStart, weekEnd) {
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const dailyTotals = new Array(7).fill(0);
+      
+      transactions.forEach(t => {
+        const date = t.date.toDate ? t.date.toDate() : new Date(t.date);
+        if (date >= weekStart && date <= weekEnd) {
+          const dayIndex = date.getDay();
+          const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1; // Monday = 0
+          dailyTotals[adjustedIndex] += t.amount;
+        }
+      });
+      
+      return { labels: days, data: dailyTotals };
+    }
+
+    // Render weekly charts
+    function renderWeeklyCharts() {
+      const { start, end } = getWeekBounds(currentWeekOffset);
+      
+      // Update week range display
+      document.getElementById('weekRange').textContent = formatWeekRange(start, end);
+      
+      // Get daily data
+      const expenseData = getDailyTotals(allExpenses, start, end);
+      const incomeData = getDailyTotals(allIncome, start, end);
+      
+      // Render expenses chart
+      if (weeklyExpensesChart) {
+        weeklyExpensesChart.destroy();
+      }
+      const expCtx = document.getElementById('weeklyExpensesChart').getContext('2d');
+      weeklyExpensesChart = new Chart(expCtx, {
+        type: 'line',
+        data: {
+          labels: expenseData.labels,
+          datasets: [{
+            label: 'Expenses',
+            data: expenseData.data,
+            borderColor: 'rgb(239, 68, 68)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rs ' + value.toFixed(0);
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      // Render income chart
+      if (weeklyIncomeChart) {
+        weeklyIncomeChart.destroy();
+      }
+      const incCtx = document.getElementById('weeklyIncomeChart').getContext('2d');
+      weeklyIncomeChart = new Chart(incCtx, {
+        type: 'line',
+        data: {
+          labels: incomeData.labels,
+          datasets: [{
+            label: 'Income',
+            data: incomeData.data,
+            borderColor: 'rgb(34, 197, 94)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rs ' + value.toFixed(0);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Render daily transaction chart
+    function renderDailyChart(selectedDate) {
+      // Update display text
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateStr = selectedDate.toLocaleDateString('en-US', options);
+      document.getElementById('selectedDayDisplay').textContent = dateStr;
+      
+      // Get start and end of selected day
+      const dayStart = new Date(selectedDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(selectedDate);
+      dayEnd.setHours(23, 59, 59, 999);
+      
+      // Filter transactions for this day
+      const dayExpenses = allExpenses.filter(t => {
+        const date = t.date.toDate ? t.date.toDate() : new Date(t.date);
+        return date >= dayStart && date <= dayEnd;
+      });
+      
+      const dayIncome = allIncome.filter(t => {
+        const date = t.date.toDate ? t.date.toDate() : new Date(t.date);
+        return date >= dayStart && date <= dayEnd;
+      });
+      
+      // Create hourly buckets
+      const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+      const expenseByHour = new Array(24).fill(0);
+      const incomeByHour = new Array(24).fill(0);
+      
+      dayExpenses.forEach(t => {
+        const date = t.date.toDate ? t.date.toDate() : new Date(t.date);
+        const hour = date.getHours();
+        expenseByHour[hour] += t.amount;
+      });
+      
+      dayIncome.forEach(t => {
+        const date = t.date.toDate ? t.date.toDate() : new Date(t.date);
+        const hour = date.getHours();
+        incomeByHour[hour] += t.amount;
+      });
+      
+      // Render chart
+      if (dailyChart) {
+        dailyChart.destroy();
+      }
+      
+      const ctx = document.getElementById('dailyChart').getContext('2d');
+      dailyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: hours,
+          datasets: [
+            {
+              label: 'Income',
+              data: incomeByHour,
+              borderColor: 'rgb(34, 197, 94)',
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              tension: 0.3,
+              fill: false,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Expenses',
+              data: expenseByHour,
+              borderColor: 'rgb(239, 68, 68)',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.3,
+              fill: false,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  label += 'Rs ' + context.parsed.y.toFixed(2);
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rs ' + value.toFixed(0);
+                }
+              }
+            },
+            x: {
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
     }
 
     // Render category breakdown table
